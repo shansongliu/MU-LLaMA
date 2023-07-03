@@ -1,7 +1,7 @@
 <div>
   <h1>
     MU-LLaMA: Music Understanding Large Language Model
-    <img src="MU-LLaMA.png" height=100px align="right"/>
+    <img src="MU-LLaMA.png" height=60px align="right"/>
   </h1>
 </div>
 
