@@ -1,0 +1,16 @@
+fairscale
+sentencepiece
+Pillow
+opencv-python
+gradio
+tqdm
+autofaiss
+tensorboard
+diffusers
+plotly
+easydict
+https://github.com/unlimblue/KNN_CUDA/releases/download/0.2/KNN_CUDA-0.2-py3-none-any.whl
+huggingface_hub
+transformers
+open3d
+torchaudio
