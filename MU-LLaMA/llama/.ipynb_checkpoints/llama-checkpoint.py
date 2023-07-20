@@ -134,10 +134,14 @@ class Attention(nn.Module):
         else:
             self.cache_k = torch.zeros(
                 (self.args.max_batch_size, self.args.max_seq_len, self.n_local_heads, self.head_dim)
-            ).cuda()
+            )
+            if torch.cuda.is_available():
+                self.cache_k = self.cache_k.cuda()
             self.cache_v = torch.zeros(
                 (self.args.max_batch_size, self.args.max_seq_len, self.n_local_heads, self.head_dim)
-            ).cuda()
+            )
+            if torch.cuda.is_available():
+                self.cache_v = self.cache_v.cuda()
         return super().train(mode)
 
 
