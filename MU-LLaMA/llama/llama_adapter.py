@@ -25,8 +25,8 @@ class LLaMA_adapter(nn.Module):
 
         # 1. mert, mert aggregator and mert projector
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.mert_model = AutoModel.from_pretrained("/hpctmp/e0589920/MERT-v1-330M", trust_remote_code=True).to(self.device)
-        self.mert_processor = Wav2Vec2FeatureExtractor.from_pretrained("/hpctmp/e0589920/MERT-v1-330M", trust_remote_code=True)
+        self.mert_model = AutoModel.from_pretrained("m-a-p/MERT-v1-330M", trust_remote_code=True).to(self.device)
+        self.mert_processor = Wav2Vec2FeatureExtractor.from_pretrained("m-a-p/MERT-v1-330M", trust_remote_code=True)
         self.mert_agg = nn.Conv1d(in_channels=25, out_channels=1, kernel_size=1)
         self.mert_proj = nn.Linear(1024, 4096)
 

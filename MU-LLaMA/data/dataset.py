@@ -67,7 +67,7 @@ class FinetuneDataset(Dataset):
 
     def __getitem__(self, index):
         data_item = self.ann[index]
-        filename = os.path.join("/hpctmp/e0589920/MusicQA/audios", data_item['audio_name'])
+        filename = os.path.join("../MusicQA/audios", data_item['audio_name'])
         question = data_item['conversation'][0]['value']
         answer = data_item['conversation'][1]['value']
         sample_rate = 24000
