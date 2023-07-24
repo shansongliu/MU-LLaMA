@@ -13,7 +13,7 @@ import os
 from tqdm.auto import tqdm
 import pandas as pd
 
-musiccaps = pd.read_csv("./musiccaps-public.csv")
+musiccaps = pd.read_csv("./MusicCaps/musiccaps-public.csv")
 
 model_name = "mosaicml/mpt-7b-chat"
 config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
@@ -139,8 +139,8 @@ def get_qa(caption):
 def get_open_qa(caption):
     return open_bot([[caption, ""]])
 
-if os.path.exists("MusicCapsAQA.csv"):
-    df_qa = pd.read_csv("MusicCapsAQA.csv", sep=";")
+if os.path.exists("./MusicCaps/MusicCapsAQA.csv"):
+    df_qa = pd.read_csv("./MusicCaps/MusicCapsAQA.csv", sep=";")
     filename_set = set(df_qa["audio_name"].values.tolist())
     data = df_qa.to_dict(orient='list')
     del data['Unnamed: 0']
@@ -169,9 +169,9 @@ for i, row in tqdm(musiccaps.iterrows(), total=len(musiccaps)):
         count += 1
         if count % 10 == 0:
             df_qa = pd.DataFrame(data)
-            df_qa.to_csv("MusicCapsAQA.csv", sep=";")
+            df_qa.to_csv("./MusicCaps/MusicCapsAQA.csv", sep=";")
     except:
         continue
 
 df_qa = pd.DataFrame(data)
-df_qa.to_csv("MusicCapsAQA.csv", sep=";")
+df_qa.to_csv("./MusicCaps/MusicCapsAQA.csv", sep=";")

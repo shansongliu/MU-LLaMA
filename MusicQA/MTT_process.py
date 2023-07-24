@@ -12,7 +12,7 @@ import re
 import os
 from tqdm import tqdm
 
-df = pd.read_csv("annotations_final.csv", sep="\t")
+df = pd.read_csv("./MTT/annotations_final.csv", sep="\t")
 
 model_name = "mosaicml/mpt-7b-chat"
 config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
@@ -142,8 +142,8 @@ def get_open_qa(caption):
     return open_bot([[caption, ""]])
 
 
-if os.path.exists("MTT_AQA.csv"):
-    df_qa = pd.read_csv("MTT_AQA.csv", sep=";")
+if os.path.exists("./MTT/MTT_AQA.csv"):
+    df_qa = pd.read_csv("./MTT/MTT_AQA.csv", sep=";")
     filename_set = set(df_qa["audio_name"].values.tolist())
     data = df_qa.to_dict(orient='list')
     del data['Unnamed: 0']
@@ -185,9 +185,9 @@ for i, row in tqdm(df.iterrows(), total=len(df)):
         data["audio_name"].append(filename)
         if count % 10 == 0:
             df_qa = pd.DataFrame(data)
-            df_qa.to_csv("MTT_AQA.csv", sep=";")
+            df_qa.to_csv("./MTT/MTT_AQA.csv", sep=";")
     except:
         continue
 
 df_qa = pd.DataFrame(data)
-df_qa.to_csv("MTT_AQA.csv", sep=";")
+df_qa.to_csv("./MTT/MTT_AQA.csv", sep=";")
