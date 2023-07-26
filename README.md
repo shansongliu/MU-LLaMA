@@ -89,7 +89,7 @@ optional arguments:
   --musicqa MUSICQA     Directory of the MusicQA dataset to be generated
 ```
 
-## MU-LLaMA Training
+### MU-LLaMA Training
 
 To train the MU-LLaMA model, use the [***finetune.sh***](./MU-LLaMA/finetune.sh) script.
 ```
