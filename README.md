@@ -8,15 +8,47 @@
 This is the official repository for *MU-LLaMA: Large Language Model for Music Question Answering*
 
 ## Introduction
-The MU-LLaMA model is Music Understanding Language Model designed with the purpose of answering questions based on music. Our model is also designed with the purpose of captioning music files to generate Text-to-Music Generation datasets. We also provide the code for generating our MusicQA dataset from MusicCaps and the FMA dataset.
+The MU-LLaMA model is Music Understanding Language Model designed with the purpose of answering questions based on music. Our model is also designed with the purpose of captioning music files to generate Text-to-Music Generation datasets. We also provide the code for generating our MusicQA dataset from [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and the [MagnaTagATune](https://mirg.city.ac.uk/codeapps/the-magnatagatune-dataset) datasets.
 
 <p align="center">
   <img src="./assets/MU-LLaMA.png">
 </p>
 
-## MusicQA Dataset Generation
+## MU-LLaMA Demo
 
-We use the MusicCaps and the FMA dataset to generate our MusicQA dataset. You can download the generated MusicQA dataset here. To generate the dataset yourself, first download the MusicCaps and MTT datasets. Once downloaded, the directory structure would be as shown.
+For the working of our model, Facebook's LLaMA model weights are required, details on obtaining these weights are given on [HuggingFace](https://huggingface.co/docs/transformers/main/model_doc/llama). Our pretrained weights for the MU-LLaMA model can be downloaded here. Once downloaded, store the files in the ckpts folder within the MU-LLaMA directory. 
+
+Once downloaded the directory structure will be as shown below.
+```
+.
+├── ...
+├── MU-LLaMA                
+│   ├── ckpts
+│   │   │── LLaMA
+│   │   │   │── 7B
+│   │   │   │   │── checklist.chk
+│   │   │   │   │── consolidated.00.pth
+│   │   │   │   │── params.json
+│   │   │   │── llama.sh
+│   │   │   │── tokenizer.model
+│   │   │   │── tokenizer_checklist.chk
+│   │   │── 7B.pth
+│   │   ├── checkpoint.pth
+└── ...
+```
+
+The demo can be run using ***gradio_app.py***.
+```
+python gradio_app.py --model ./ckpts/checkpoint.pth --llama_dir ./ckpts/LLaMA
+```
+
+## Training MU-LLaMA
+
+To train the MU-LLaMA model, follow the steps as below.
+
+### MusicQA Dataset
+
+We use the [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and the [MagnaTagATune](https://mirg.city.ac.uk/codeapps/the-magnatagatune-dataset) dataset to generate our MusicQA dataset. You can download the generated MusicQA dataset [here](./). To generate the dataset yourself, first download the MusicCaps and MTT datasets. Once downloaded, the directory structure would be as shown.
 
 ```
 .
@@ -38,7 +70,7 @@ We use the MusicCaps and the FMA dataset to generate our MusicQA dataset. You ca
 
  
 > &#128221; **Note**:
-> Run the following command to flatten the MTT audio file structure
+> Run the following command to flatten the MTT audio file structure once downloaaded and extracted,
 ```
 find ./MTT/audios -mindepth 2 -type f -exec mv -t ./MTT/audios -i '{}' +
 ```
@@ -56,3 +88,7 @@ optional arguments:
                         Directory of the MusicCaps dataset
   --musicqa MUSICQA     Directory of the MusicQA dataset to be generated
 ```
+
+## MU-LLaMA Training
+
+To train the MU-LLaMA model, use the ***main_finetune.py*** script.
