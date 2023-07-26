@@ -37,7 +37,7 @@ Once downloaded the directory structure will be as shown below.
 └── ...
 ```
 
-The demo can be run using ***gradio_app.py***.
+The demo can be run using [***gradio_app.py***](./MU-LLaMA/gradio_app.py).
 ```
 python gradio_app.py --model ./ckpts/checkpoint.pth --llama_dir ./ckpts/LLaMA
 ```
@@ -76,7 +76,7 @@ find ./MTT/audios -mindepth 2 -type f -exec mv -t ./MTT/audios -i '{}' +
 ```
 
 
-By running ***musiccaps_process.py*** and ***MTT_process.py***, you can generate the question answer pairs from each of the datasets and by running ***generate_dataset.py*** the final dataset will be generated.
+By running [***musiccaps_process.py***](./MusicQA/musiccaps_process.py) and [***MTT_process.py***](./MusicQA/MTT_process.py), you can generate the question answer pairs from each of the datasets and by running [***generate_dataset.py***](./MusicQA/generate_dataset.py) the final dataset will be generated.
 
 ```
 usage: generate_dataset.py [-h] --mtt MTT --musiccaps MUSICCAPS --musicqa MUSICQA
@@ -91,4 +91,9 @@ optional arguments:
 
 ## MU-LLaMA Training
 
-To train the MU-LLaMA model, use the ***main_finetune.py*** script.
+To train the MU-LLaMA model, use the [***finetune.sh***](./MU-LLaMA/finetune.sh) script.
+```
+./finetune.sh ./ckpts/LLaMA ./ckpts/7B.pth ./musicqa.yaml ./ckpts/MU-LLaMA
+```
+
+This will train the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. Once trained, the model can be tested using the Gradio demo.
