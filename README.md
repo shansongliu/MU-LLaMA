@@ -99,6 +99,24 @@ To train the MU-LLaMA model, use the [***finetune.sh***](./MU-LLaMA/finetune.sh)
 
 This will train the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. The MU-LLaMA model with 7B parameters takes approximately 2 days to train on a Tesla V100-SXM2-32GB GPU. Once trained, the model can be tested using the Gradio demo.
 
+### MU-LLaMA Inference
+
+To test the model without Gradio, the [***inference.py***](./MU-LLaMA/inference.py) script can be used.
+```
+usage: inference.py [-h] [--model MODEL] [--llama_type LLAMA_TYPE] [--llama_dir LLAMA_DIR] --audio_path AUDIO_PATH [--question QUESTION]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --model MODEL         Name of or path to ImageBind-LLM pretrained checkpoint
+  --llama_type LLAMA_TYPE
+                        Type of llama original weight
+  --llama_dir LLAMA_DIR
+                        Path to LLaMA pretrained checkpoint
+  --audio_path AUDIO_PATH
+                        Path to the input music file
+  --question QUESTION   Question to ask the model
+```
+
 ## Acknowledgements
 
 This code contains elements from the following repos:
