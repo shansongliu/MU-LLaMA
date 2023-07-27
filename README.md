@@ -68,7 +68,8 @@ We use the [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and t
 └── ...
 ```
 
- 
+The MusicQA dataset generation is a very computationally intensive process which takes around 8 days per dataset on a Tesla V100-SXM2-32GB GPU, so it is recommended to download our generated dataset.
+
 > &#128221; **Note**:
 > Run the following command to flatten the MTT audio file structure once downloaaded and extracted,
 ```
@@ -96,7 +97,7 @@ To train the MU-LLaMA model, use the [***finetune.sh***](./MU-LLaMA/finetune.sh)
 ./finetune.sh ./ckpts/LLaMA ./ckpts/7B.pth ./musicqa.yaml ./ckpts/MU-LLaMA
 ```
 
-This will train the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. Once trained, the model can be tested using the Gradio demo.
+This will train the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. The MU-LLaMA model with 7B parameters takes approximately 2 days to train on a Tesla V100-SXM2-32GB GPU. Once trained, the model can be tested using the Gradio demo.
 
 ## Acknowledgements
 
