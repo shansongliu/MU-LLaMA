@@ -1,0 +1,63 @@
+import argparse
+import torch.cuda
+
+import llama
+from util.misc import *
+from data.utils import load_and_transform_audio_data
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--model", default="7B", type=str,
+    help="Name of or path to ImageBind-LLM pretrained checkpoint",
+)
+parser.add_argument(
+    "--llama_type", default="7B", type=str,
+    help="Type of llama original weight",
+)
+parser.add_argument(
+    "--llama_dir", default="/path/to/llama", type=str,
+    help="Path to LLaMA pretrained checkpoint",
+)
+
+parser.add_argument(
+    "--audio_path", required=True, type=str,
+    help="Type of llama original weight",
+)
+parser.add_argument(
+    "--question", default="Describe the Audio", type=str,
+    help="Path to LLaMA pretrained checkpoint",
+)
+args = parser.parse_args()
+
+model = llama.load(args.model, args.llama_dir, knn=True, llama_type=args.llama_type)
+model.eval()
+
+def multimodal_generate(
+        audio_path,
+        audio_weight,
+        prompt,
+        cache_size,
+        cache_t,
+        cache_weight,
+        max_gen_len,
+        gen_t, top_p
+):
+    inputs = {}
+    audio = load_and_transform_audio_data([audio_path])
+    inputs['Audio'] = [audio, audio_weight]
+    image_prompt = prompt
+    text_output = None
+    prompts = [llama.format_prompt(prompt)]
+    prompts = [model.tokenizer.encode(x, bos=True, eos=False) for x in prompts]
+    with torch.cuda.amp.autocast():
+        results = model.generate(inputs, prompts, max_gen_len=max_gen_len, temperature=gen_t, top_p=top_p,
+                                     cache_size=cache_size, cache_t=cache_t, cache_weight=cache_weight)
+    text_output = results[0].strip()
+    return text_output
+
+output = multimodal_generate(args.audio_path, 1, args.question, 100, 20.0, 0.0, 512, 0.6, 0.8)
+print()
+print(f"Audio File: {args.audio_path}")
+print(f"Q: {args.question}")
+print(f"A: {output}")
+
