@@ -97,3 +97,9 @@ To train the MU-LLaMA model, use the [***finetune.sh***](./MU-LLaMA/finetune.sh)
 ```
 
 This will train the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. Once trained, the model can be tested using the Gradio demo.
+
+## Acknowledgements
+
+This code contains elements from the following repos:
+- [OpenGVLab/LLaMA-Adapter](https://github.com/OpenGVLab/LLaMA-Adapter)
+- [yizhilll/MERT](https://github.com/yizhilll/MERT)
