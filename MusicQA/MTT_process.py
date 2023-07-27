@@ -99,9 +99,10 @@ def bot(history, temperature=0.5, top_p=1, top_k=4, repetition_penalty=1):
             continue
         return {"Describe the audio": match.group(1), "Describe the audio in detail": match.group(2), 
                 "What do you hear in the audio?":match.group(3), "What can be inferred from the audio?":match.group(4)}
+    return None
 
 def open_bot(history, temperature=0.4, top_p=1, top_k=4, repetition_penalty=1):
-    while True:
+    for _ in range(5):
         stop = StopOnTokens()
 
         # Construct the input message string for the model by concatenating the current system message and conversation history
@@ -133,6 +134,7 @@ def open_bot(history, temperature=0.4, top_p=1, top_k=4, repetition_penalty=1):
         if len(generated.keys()) != 5:
             continue
         return generated
+    return None
     
     
 def get_qa(caption):
@@ -175,11 +177,13 @@ for i, row in tqdm(df.iterrows(), total=len(df)):
         filename = row[-1].split('/')[-1]
         if filename in filename_set:
             continue
-        qa = get_qa(tags)
-        for q, a in qa.items():
+        qa1 = get_qa(tags)
+        qa2 = get_open_qa(tags)
+        if qa1 is None or qa2 is None:
+            continue
+        for q, a in qa1.items():
             data[q].append(a)
-        qa = get_open_qa(tags)
-        for i, (q, a) in enumerate(qa.items()):
+        for i, (q, a) in enumerate(qa2.items()):
             data[f"OpenQA{i+1}"].append(f"Q:{q}\tA:{a}")
         count += 1
         data["audio_name"].append(filename)

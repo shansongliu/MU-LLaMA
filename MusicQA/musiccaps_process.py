@@ -25,7 +25,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 stop_token_ids = tokenizer.convert_tokens_to_ids(["<|im_end|>", "<|endoftext|>"])
 start_message = """<|im_start|>system
 - You are given a caption describing an audio
-- You will give answers from the audio to these questions based on the list of tags
+- You will give answers from the audio to these questions based on the caption
     1. Describe the audio
     2. Describe the audio in detail
     3. What do you hear in the audio
@@ -34,8 +34,8 @@ start_message = """<|im_start|>system
 """
 start_message_2 = """<|im_start|>system
 - You are given a caption describing an audio
-- You will create 5 questions related to the audio based on the list of tags along with answers
-- The question answers should be long form
+- You will create 5 questions and answers related to the audio based on the caption
+- The answers should be long form
 - The question answers should be numbered <|im_end|>
 """
 
@@ -71,7 +71,7 @@ def convert_history_to_text(history, sm=start_message):
     return text
 
 def bot(history, temperature=0.5, top_p=1, top_k=4, repetition_penalty=1):
-    while True:
+    for _ in range(5):
         stop = StopOnTokens()
 
         # Construct the input message string for the model by concatenating the current system message and conversation history
@@ -99,9 +99,10 @@ def bot(history, temperature=0.5, top_p=1, top_k=4, repetition_penalty=1):
             continue
         return {"Describe the audio": match.group(1), "Describe the audio in detail": match.group(2), 
                 "What do you hear in the audio?":match.group(3), "What can be inferred from the audio?":match.group(4)}
+    return None
 
 def open_bot(history, temperature=0.4, top_p=1, top_k=4, repetition_penalty=1):
-    while True:
+    for _ in range(5):
         stop = StopOnTokens()
 
         # Construct the input message string for the model by concatenating the current system message and conversation history
@@ -131,7 +132,7 @@ def open_bot(history, temperature=0.4, top_p=1, top_k=4, repetition_penalty=1):
         for qid in range(1, 11, 2):
             generated[match.group(qid)] = match.group(qid+1) 
         return generated
-    
+    return None
     
 def get_qa(caption):
     return bot([[caption, ""]])
@@ -156,14 +157,17 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 count = 0
 for i, row in tqdm(musiccaps.iterrows(), total=len(musiccaps)):
     try:
-        if f"{row['ytid']}.wav" in filename_set or not os.path.exists(f"./audio/{row['ytid']}.wav"):
+        filename = f"[{row['ytid']}]-[{(row['start_s']*1000)//1000}-{(row['end_s']*1000)//1000}].wav"
+        if filename in filename_set or not os.path.exists(f"./audios/{filename}"):
             continue
         caption = row['caption']
-        qa = get_qa(caption)
-        for q, a in qa.items():
+        qa1 = get_qa(caption)
+        qa2 = get_open_qa(caption)
+        if qa1 is None or qa2 is None:
+            continue
+        for q, a in qa1.items():
             data[q].append(a)
-        qa = get_open_qa(caption)
-        for i, (q, a) in enumerate(qa.items()):
+        for i, (q, a) in enumerate(qa2.items()):
             data[f"OpenQA{i+1}"].append(f"Q:{q}\tA:{a}")
         data["audio_name"].append(f"{row['ytid']}.wav")
         count += 1
