@@ -21,11 +21,11 @@ parser.add_argument(
 
 parser.add_argument(
     "--audio_path", required=True, type=str,
-    help="Type of llama original weight",
+    help="Path to the input music file",
 )
 parser.add_argument(
     "--question", default="Describe the Audio", type=str,
-    help="Path to LLaMA pretrained checkpoint",
+    help="Question to ask the model",
 )
 args = parser.parse_args()
 
