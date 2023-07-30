@@ -9,13 +9,6 @@ import math
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple
 
-import fairscale.nn.model_parallel.initialize as fs_init
-from fairscale.nn.model_parallel.layers import (
-    ColumnParallelLinear,
-    ParallelEmbedding,
-    RowParallelLinear,
-)
-
 
 @dataclass
 class ModelArgs:
@@ -97,36 +90,28 @@ class Attention(nn.Module):
         self.args = args
 
         self.n_local_heads = args.n_heads
+        self.n_kv_heads = args.n_kv_heads
         self.head_dim = args.dim // args.n_heads
 
-        self.wq = ColumnParallelLinear(
+        self.wq = Linear(
             args.dim,
             args.n_heads * self.head_dim,
-            bias=args.w_bias,
-            gather_output=False,
-            init_method=lambda x: x,
+            bias=args.w_bias
         )
-        self.wk = ColumnParallelLinear(
+        self.wk = Linear(
             args.dim,
-            self.n_kv_heads * self.head_dim,
-            bias=False,
-            gather_output=False,
-            init_method=lambda x: x,
+            args.n_heads * self.head_dim,
+            bias=False
         )
-        self.wv = ColumnParallelLinear(
+        self.wv = Linear(
             args.dim,
-            self.n_kv_heads * self.head_dim,
-            bias=False,
-            gather_output=False,
-            init_method=lambda x: x,
+            args.n_heads * self.head_dim,
+            bias=False
         )
-
-        self.wo = RowParallelLinear(
+        self.wo = Linear(
             args.n_heads * self.head_dim,
             args.dim,
-            bias=args.w_bias,
-            input_is_parallel=True,
-            init_method=lambda x: x,
+            bias=args.w_bias
         )
 
         if args.w_bias:
@@ -135,17 +120,17 @@ class Attention(nn.Module):
 
         self.w_lora = args.w_lora
         if args.w_lora:
-            self.lora_wq_l1 = ColumnParallelLinear(args.dim, args.lora_rank, bias=False)
-            self.lora_wq_l2 = ColumnParallelLinear(args.lora_rank, args.dim, bias=False)
+            self.lora_wq_l1 = Linear(args.dim, args.lora_rank, bias=False)
+            self.lora_wq_l2 = Linear(args.lora_rank, args.dim, bias=False)
 
-            self.lora_wk_l1 = ColumnParallelLinear(args.dim, args.lora_rank, bias=False)
-            self.lora_wk_l2 = ColumnParallelLinear(args.lora_rank, args.dim, bias=False)
+            self.lora_wk_l1 = Linear(args.dim, args.lora_rank, bias=False)
+            self.lora_wk_l2 = Linear(args.lora_rank, args.dim, bias=False)
 
-            self.lora_wv_l1 = ColumnParallelLinear(args.dim, args.lora_rank, bias=False)
-            self.lora_wv_l2 = ColumnParallelLinear(args.lora_rank, args.dim, bias=False)
+            self.lora_wv_l1 = Linear(args.dim, args.lora_rank, bias=False)
+            self.lora_wv_l2 = Linear(args.lora_rank, args.dim, bias=False)
 
-            self.lora_wo_l1 = RowParallelLinear(args.dim, args.lora_rank, bias=False)
-            self.lora_wo_l2 = RowParallelLinear(args.lora_rank, args.dim, bias=False)
+            self.lora_wo_l1 = Linear(args.dim, args.lora_rank, bias=False)
+            self.lora_wo_l2 = Linear(args.lora_rank, args.dim, bias=False)
             nn.init.constant_(self.lora_wq_l2.weight.data, 0)
             nn.init.constant_(self.lora_wk_l2.weight.data, 0)
             nn.init.constant_(self.lora_wv_l2.weight.data, 0)
@@ -251,14 +236,14 @@ class FeedForward(nn.Module):
             hidden_dim = int(ffn_dim_multiplier * hidden_dim)
         hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
 
-        self.w1 = ColumnParallelLinear(
-            dim, hidden_dim, bias=args.w_bias, gather_output=False, init_method=lambda x: x
+        self.w1 = Linear(
+            dim, hidden_dim, bias=args.w_bias
         )
-        self.w2 = RowParallelLinear(
-            hidden_dim, dim, bias=args.w_bias, input_is_parallel=True, init_method=lambda x: x
+        self.w2 = Linear(
+            hidden_dim, dim, bias=args.w_bias
         )
-        self.w3 = ColumnParallelLinear(
-            dim, hidden_dim, bias=args.w_bias, gather_output=False, init_method=lambda x: x
+        self.w3 = Linear(
+            dim, hidden_dim, bias=args.w_bias
         )
         if args.w_bias:
             nn.init.constant_(self.w1.bias.data, 0)
@@ -267,12 +252,12 @@ class FeedForward(nn.Module):
 
         self.w_lora = args.w_lora
         if args.w_lora:
-            self.lora_w1_l1 = ColumnParallelLinear(dim, args.lora_rank, bias=False)
-            self.lora_w1_l2 = ColumnParallelLinear(args.lora_rank, hidden_dim, bias=False)
-            self.lora_w2_l1 = RowParallelLinear(hidden_dim, args.lora_rank, bias=False)
-            self.lora_w2_l2 = RowParallelLinear(args.lora_rank, dim, bias=False)
-            self.lora_w3_l1 = ColumnParallelLinear(dim, args.lora_rank, bias=False)
-            self.lora_w3_l2 = ColumnParallelLinear(args.lora_rank, hidden_dim, bias=False)
+            self.lora_w1_l1 = Linear(dim, args.lora_rank, bias=False)
+            self.lora_w1_l2 = Linear(args.lora_rank, hidden_dim, bias=False)
+            self.lora_w2_l1 = Linear(hidden_dim, args.lora_rank, bias=False)
+            self.lora_w2_l2 = Linear(args.lora_rank, dim, bias=False)
+            self.lora_w3_l1 = Linear(dim, args.lora_rank, bias=False)
+            self.lora_w3_l2 = Linear(args.lora_rank, hidden_dim, bias=False)
             nn.init.constant_(self.lora_w1_l2.weight.data, 0)
             nn.init.constant_(self.lora_w2_l2.weight.data, 0)
             nn.init.constant_(self.lora_w3_l2.weight.data, 0)
@@ -294,7 +279,8 @@ class TransformerBlock(nn.Module):
         self.head_dim = args.dim // args.n_heads
         self.attention = Attention(args)
         self.feed_forward = FeedForward(
-            dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of, args=args
+            dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of,
+            ffn_dim_multiplier=args.ffn_dim_multiplier, args=args
         )
         self.layer_id = layer_id
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
@@ -313,8 +299,8 @@ class Transformer(nn.Module):
         self.params = params
         self.vocab_size = params.vocab_size
         self.n_layers = params.n_layers
-        self.tok_embeddings = ParallelEmbedding(
-            params.vocab_size, params.dim, init_method=lambda x: x
+        self.tok_embeddings = Embedding(
+            params.vocab_size, params.dim
         )
 
         self.layers = torch.nn.ModuleList()
@@ -322,8 +308,8 @@ class Transformer(nn.Module):
             self.layers.append(TransformerBlock(layer_id, params))
 
         self.norm = RMSNorm(params.dim, eps=params.norm_eps)
-        self.output = ColumnParallelLinear(
-            params.dim, params.vocab_size, bias=False, init_method=lambda x: x
+        self.output = Linear(
+            params.dim, params.vocab_size, bias=False
         )
 
         self.freqs_cis = precompute_freqs_cis(
