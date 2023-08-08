@@ -71,7 +71,7 @@ We use the [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and t
 The MusicQA dataset generation is a very computationally intensive process which takes around 8 days per dataset on a Tesla V100-SXM2-32GB GPU, so it is recommended to download our generated dataset.
 
 > &#128221; **Note**:
-> Run the following command to flatten the MTT audio file structure once downloaaded and extracted,
+> Run the following command to flatten the MTT audio file structure once downloaded and extracted,
 ```
 find ./MTT/audios -mindepth 2 -type f -exec mv -t ./MTT/audios -i '{}' +
 ```
