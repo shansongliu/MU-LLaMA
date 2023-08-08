@@ -25,6 +25,9 @@ class LLaMA_adapter(nn.Module):
 
         # 1. mert, mert aggregator and mert projector
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        # The model files for MERT can be downloaded here in case of network issues:
+        # https://huggingface.co/m-a-p/MERT-v1-330M
+        # And change the model name to the path to downloaded model directory
         self.mert_model = AutoModel.from_pretrained("m-a-p/MERT-v1-330M", trust_remote_code=True).to(self.device)
         self.mert_processor = Wav2Vec2FeatureExtractor.from_pretrained("m-a-p/MERT-v1-330M", trust_remote_code=True)
         self.mert_agg = nn.Conv1d(in_channels=25, out_channels=1, kernel_size=1)
