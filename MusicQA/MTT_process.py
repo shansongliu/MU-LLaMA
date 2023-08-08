@@ -14,6 +14,9 @@ from tqdm import tqdm
 
 df = pd.read_csv("./MTT/annotations_final.csv", sep="\t")
 
+# The model files for MERT can be downloaded here in case of network issues:
+# https://huggingface.co/mosaicml/mpt-7b-chat
+# And change the model_name to the path to downloaded model directory
 model_name = "mosaicml/mpt-7b-chat"
 config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
 config.attn_config['attn_impl'] = 'torch'
