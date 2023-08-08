@@ -16,6 +16,8 @@ df = pd.read_csv("./MTT/annotations_final.csv", sep="\t")
 
 # The model files for MERT can be downloaded here in case of network issues:
 # https://huggingface.co/mosaicml/mpt-7b-chat
+# Download the following files into a folder: config.json, generation_config.json,pytorch_model-00001-of-00002.bin,
+# pytorch_model-00002-of-00002.bin, pytorch_model.bin.index.json, special_tokens_map.json, tokenizer.json, tokenizer_config.json
 # And change the model_name to the path to downloaded model directory
 model_name = "mosaicml/mpt-7b-chat"
 config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
