@@ -67,14 +67,19 @@ class FinetuneDataset(Dataset):
 
     def __getitem__(self, index):
         data_item = self.ann[index]
-        filename = os.path.join("../MusicQA/audios", data_item['audio_name'])
-        question = data_item['conversation'][0]['value']
-        answer = data_item['conversation'][1]['value']
-        sample_rate = 24000
-        waveform, sr = torchaudio.load(filename)
-        if sample_rate != sr:
-            waveform = torchaudio.functional.resample(waveform, orig_freq=sr, new_freq=sample_rate)
-        image = torch.mean(waveform, 0)
+        if "audio_name" in data_item:
+            filename = os.path.join("../MusicQA/audios", data_item['audio_name'])
+            question = data_item['conversation'][0]['value']
+            answer = data_item['conversation'][1]['value']
+            sample_rate = 24000
+            waveform, sr = torchaudio.load(filename)
+            if sample_rate != sr:
+                waveform = torchaudio.functional.resample(waveform, orig_freq=sr, new_freq=sample_rate)
+            image = torch.mean(waveform, 0)
+        else:
+            question = data_item['conversation'][0]['value']
+            answer = data_item['conversation'][1]['value']
+            image = torch.zeros(24000)
         format_instruction = question
         input1 = llama.utils.format_prompt(format_instruction)
         input2 = input1 + answer
