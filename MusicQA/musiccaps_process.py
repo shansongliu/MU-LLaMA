@@ -94,7 +94,7 @@ def bot(history, temperature=0.5, top_p=1, top_k=4, repetition_penalty=1):
         full_history = tokenizer.batch_decode(model.generate(**generate_kwargs), skip_special_tokens=True)[0]
         match = re.search(r"assistant\n(?:\d\. (.*))\n(?:\d\. (.*))\n(?:\d\. (.*))\n(?:\d\. (.*))", full_history)
         if match is None:
-            print("Retyring...")
+            print("Retrying...")
             print(full_history)
             continue
         return {"Describe the audio": match.group(1), "Describe the audio in detail": match.group(2), 
@@ -125,7 +125,7 @@ def open_bot(history, temperature=0.4, top_p=1, top_k=4, repetition_penalty=1):
         full_history = tokenizer.batch_decode(model.generate(**generate_kwargs), skip_special_tokens=True)[0]
         match = re.search(r"assistant\n(?:\d\. (.*)\nAnswer: (.*))\n(?:\d\. (.*)\nAnswer: (.*))\n(?:\d\. (.*)\nAnswer: (.*))\n(?:\d\. (.*)\nAnswer: (.*))\n(?:\d\. (.*)\nAnswer: (.*))", full_history)
         if match is None:
-            print("Retyring...")
+            print("Retrying...")
             print(full_history)
             continue
         generated = {}
