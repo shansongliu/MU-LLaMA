@@ -34,7 +34,7 @@ def get_args_parser():
     parser.add_argument('--llama_path', default='/path/to/llama', type=str,
                         help='path to LLaMA pretrained checkpoint')
     parser.add_argument('--pretrained_path', default='/path/to/pretrained', type=str,
-                        help='path to checkpoint from pretrain stage')
+                        help='path to instruction pretrained checkpoint')
     parser.add_argument('--max_words', default=512, type=int,
                         help='max number of input words')
 

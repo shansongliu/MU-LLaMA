@@ -82,12 +82,12 @@ def create_imagebind_llm_demo():
                         cache_size = gr.Slider(minimum=1, maximum=100, value=10, interactive=True, label="Cache Size")
                         cache_t = gr.Slider(minimum=0.0, maximum=100, value=20, interactive=True,
                                             label="Cache Temperature")
-                        cache_weight = gr.Slider(minimum=0.0, maximum=1, value=0.5, interactive=True,
+                        cache_weight = gr.Slider(minimum=0.0, maximum=1, value=0.1, interactive=True,
                                                  label="Cache Weight")
                     with gr.Row() as text_config_row:
-                        max_gen_len = gr.Slider(minimum=1, maximum=512, value=128, interactive=True, label="Max Length")
-                        gen_t = gr.Slider(minimum=0, maximum=1, value=0.1, interactive=True, label="Temperature")
-                        top_p = gr.Slider(minimum=0, maximum=1, value=0.75, interactive=True, label="Top p")
+                        max_gen_len = gr.Slider(minimum=1, maximum=1024, value=1024, interactive=True, label="Max Length")
+                        gen_t = gr.Slider(minimum=0, maximum=1, value=0.25, interactive=True, label="Temperature")
+                        top_p = gr.Slider(minimum=0, maximum=1, value=1.0, interactive=True, label="Top p")
 
             with gr.Column():
                 chatbot = gr.Chatbot()
@@ -111,16 +111,17 @@ def create_imagebind_llm_demo():
     def user(user_message, history):
         return "", history + [[user_message, None]]
 
-    def bot(history):
+    def bot(history, audio_file_path, cache_size_value, cache_t_value, cache_weight_value, max_gen_len_value, gen_t_value, top_p_value):
+        #print(cache_size.value, cache_t.value, cache_weight.value, max_gen_len.value, gen_t.value, top_p.value)
         bot_message = multimodal_generate(
-            audio_path,
+            audio_file_path,
             1,
             history[-1][0],
-            cache_size,
-            cache_t,
-            cache_weight,
-            max_gen_len,
-            gen_t, top_p, "Text")
+            cache_size_value,
+            cache_t_value,
+            cache_weight_value,
+            max_gen_len_value,
+            gen_t_value, top_p_value, "Text")
         history[-1][1] = ""
         for word in bot_message.split():
             history[-1][1] = " ".join([history[-1][1], word])
@@ -136,12 +137,12 @@ def create_imagebind_llm_demo():
             history[-1][1] = " ".join([history[-1][1], word])
             yield history
 
-    audio_path.change(hear_audio, chatbot, chatbot, queue=False).then(
+    audio_path.upload(hear_audio, chatbot, chatbot, queue=False).then(
         start_chat, chatbot, chatbot
     )
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, chatbot, chatbot
+        bot, [chatbot, audio_path, cache_size, cache_t, cache_weight, max_gen_len, gen_t, top_p], chatbot
     )
 
     clear.click(lambda: None, None, chatbot, queue=False)
