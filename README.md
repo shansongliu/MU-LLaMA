@@ -107,7 +107,7 @@ usage: inference.py [-h] [--model MODEL] [--llama_type LLAMA_TYPE] [--llama_dir 
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model MODEL         Name of or path to ImageBind-LLM pretrained checkpoint
+  --model MODEL         Name of or path to the trained checkpoint
   --llama_type LLAMA_TYPE
                         Type of llama original weight
   --llama_dir LLAMA_DIR
