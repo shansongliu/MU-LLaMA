@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 import numpy as np
+from collections import defaultdict
 
 import torch
 import torch.nn as nn
@@ -28,10 +29,10 @@ class LLaMA_adapter(nn.Module):
         # The model files for MERT can be downloaded here in case of network issues:
         # https://huggingface.co/m-a-p/MERT-v1-330M
         # And change the model name to the path to downloaded model directory
-        self.mert_model = AutoModel.from_pretrained("m-a-p/MERT-v1-330M", trust_remote_code=True).to(self.device)
-        self.mert_processor = Wav2Vec2FeatureExtractor.from_pretrained("m-a-p/MERT-v1-330M", trust_remote_code=True)
-        self.mert_agg = nn.Conv1d(in_channels=25, out_channels=1, kernel_size=1)
-        self.mert_proj = nn.Linear(1024, 4096)
+        self.mert_model = AutoModel.from_pretrained("/hpctmp/e0589920/MERT-v1-330M", trust_remote_code=True).to(self.device)
+        self.mert_processor = Wav2Vec2FeatureExtractor.from_pretrained("/hpctmp/e0589920/MERT-v1-330M", trust_remote_code=True)
+        self.mu_mert_agg = nn.Conv1d(in_channels=25, out_channels=1, kernel_size=1)
+        self.mu_mert_proj = nn.Linear(1024, 4096)
 
         if legacy_bridge:
             bridge_norm_layer = nn.LayerNorm
@@ -41,20 +42,20 @@ class LLaMA_adapter(nn.Module):
             bridge_bias = False
 
 
-        self.mert_norm_1 = bridge_norm_layer(4096)
-        self.mert_f1_1 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
-        self.mert_f2_1 = nn.Linear(4096 * 4, 4096, bias=bridge_bias)
-        self.mert_f3_1 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
+        self.mu_mert_norm_1 = bridge_norm_layer(4096)
+        self.mu_mert_f1_1 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
+        self.mu_mert_f2_1 = nn.Linear(4096 * 4, 4096, bias=bridge_bias)
+        self.mu_mert_f3_1 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
 
-        self.mert_norm_2 = bridge_norm_layer(4096)
-        self.mert_f1_2 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
-        self.mert_f2_2 = nn.Linear(4096 * 4, 4096, bias=bridge_bias)
-        self.mert_f3_2 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
+        self.mu_mert_norm_2 = bridge_norm_layer(4096)
+        self.mu_mert_f1_2 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
+        self.mu_mert_f2_2 = nn.Linear(4096 * 4, 4096, bias=bridge_bias)
+        self.mu_mert_f3_2 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
 
-        self.mert_norm_3 = bridge_norm_layer(4096)
-        self.mert_f1_3 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
-        self.mert_f2_3 = nn.Linear(4096 * 4, 4096, bias=bridge_bias)
-        self.mert_f3_3 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
+        self.mu_mert_norm_3 = bridge_norm_layer(4096)
+        self.mu_mert_f1_3 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
+        self.mu_mert_f2_3 = nn.Linear(4096 * 4, 4096, bias=bridge_bias)
+        self.mu_mert_f3_3 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
 
         # 2. tokenizer
         self.tokenizer = Tokenizer(model_path=llama_tokenizer)
@@ -64,7 +65,7 @@ class LLaMA_adapter(nn.Module):
             params = json.loads(f.read())
         bias_lora = phase == "finetune"
         model_args: ModelArgs = ModelArgs(
-            max_seq_len=512, max_batch_size=1, w_bias=bias_lora, w_lora=bias_lora, **params) # max_batch_size only affects inference
+            max_seq_len=8192, max_batch_size=1, w_bias=bias_lora, w_lora=bias_lora, **params) # max_batch_size only affects inference
         print(f"model args: {model_args}")
         model_args.vocab_size = self.tokenizer.n_words
         if torch.cuda.is_available():
@@ -73,12 +74,65 @@ class LLaMA_adapter(nn.Module):
         torch.set_default_tensor_type(torch.FloatTensor)
 
         ckpts = sorted(Path(llama_ckpt_dir).glob("*.pth"))
+
+        """
+        Adapted from https://github.com/cedrickchee/llama/blob/main/chattyllama/combined/inference.py
+        """
+        key_to_dim = {
+            "w1": 0,
+            "w2": -1,
+            "w3": 0,
+            "wo": -1,
+            "wq": 0,
+            "wk": 0,
+            "wv": 0,
+            "output": 0,
+            "tok_embeddings": -1,
+            "ffn_norm": None,
+            "attention_norm": None,
+            "norm": None,
+            "rope": None,
+        }
+        for i, ckpt in enumerate(ckpts):
+            checkpoint = torch.load(ckpt, map_location="cpu")
+            for parameter_name, parameter in self.llama.named_parameters():
+                short_name = parameter_name.split(".")[-2]
+                if "gate" in parameter_name or "lora" in parameter_name or "bias" in parameter_name:
+                    continue
+                if key_to_dim[short_name] is None and i == 0:
+                    parameter.data = checkpoint[parameter_name]
+                elif key_to_dim[short_name] == 0:
+                    size = checkpoint[parameter_name].size(0)
+                    parameter.data[size * i: size * (i + 1), :] = checkpoint[
+                        parameter_name
+                    ]
+                elif key_to_dim[short_name] == -1:
+                    size = checkpoint[parameter_name].size(-1)
+                    parameter.data[:, size * i: size * (i + 1)] = checkpoint[
+                        parameter_name
+                    ]
+            del checkpoint
+        '''
+        ckpts_dict = defaultdict(list)
         for ckpt in ckpts:
             ckpt = torch.load(ckpt, map_location='cpu')
-            self.llama.load_state_dict(ckpt, strict=False)
+            for key, val in ckpt.items():
+                ckpts_dict[key].append(val)
+        
+        for key, val in ckpts_dict.items():
+            ckpts_dict[key] = torch.cat(val, dim=-1)
 
+        self.llama.load_state_dict(ckpts_dict, strict=False)
+        
+        print(ckpts)
+        for ckpt in ckpts:
+            print(ckpt)
+            ckpt = torch.load(ckpt, map_location='cpu')
+            self.llama.load_state_dict(ckpt, strict=False)
+        '''
+        
         # 4. prefix
-        self.query_layer = 32
+        self.query_layer = 20
         self.query_len = 1
         self.prefix_query = nn.Embedding(self.query_layer * self.query_len, model_args.dim)
 
@@ -97,10 +151,22 @@ class LLaMA_adapter(nn.Module):
 
     def get_trainable_params(self, phase='finetune'):
         trainable = {}
-        for name, para in self.named_parameters():
-            if name.startswith("llama."):
-                if 'norm' in name or 'bias' in name or 'lora' in name:
+        if phase == 'finetune':
+            for name, para in self.named_parameters():
+                if name.startswith("llama."):
+                    if 'norm' in name or 'bias' in name or 'lora' in name:
+                        trainable[name] = para
+        elif phase == 'pretrain':
+            for name, para in self.named_parameters():
+                if name.startswith("llama."):
+                    if 'gate' in name:
+                        trainable[name] = para
+                elif name.startswith("mu_mert_"):
                     trainable[name] = para
+                elif name.startswith("prefix_query."):
+                    trainable[name] = para
+        else:
+            raise ValueError(f"Unknown model phase: {phase}")
         return trainable
 
     def set_default_trainability(self, phase='finetune'):
@@ -124,7 +190,7 @@ class LLaMA_adapter(nn.Module):
                 outputs = self.mert_model(**inputs, output_hidden_states=True)
             all_layer_hidden_states = torch.stack(outputs.hidden_states).squeeze()
             sub_x = all_layer_hidden_states.mean(-2).unsqueeze(0)
-            sub_x = self.mert_agg(sub_x).squeeze()
+            sub_x = self.mu_mert_agg(sub_x).squeeze()
             xs.append(sub_x)
         x = torch.stack(xs, dim=0)
         return x
@@ -157,15 +223,15 @@ class LLaMA_adapter(nn.Module):
             audio_feats = audio_feats / audio_feats.norm(dim=-1, keepdim=True)
 
         audio_feats = audio_feats.unsqueeze(1) # B, 1, D
-        audio_feats = self.mert_proj(audio_feats)
-        audio_feats_norm = self.mert_norm_1(audio_feats)
-        audio_feats = audio_feats + self.mert_f2_1(F.silu(self.mert_f1_1(audio_feats_norm)) * self.mert_f3_1(audio_feats_norm))
+        audio_feats = self.mu_mert_proj(audio_feats)
+        audio_feats_norm = self.mu_mert_norm_1(audio_feats)
+        audio_feats = audio_feats + self.mu_mert_f2_1(F.silu(self.mu_mert_f1_1(audio_feats_norm)) * self.mu_mert_f3_1(audio_feats_norm))
 
-        audio_feats_norm = self.mert_norm_2(audio_feats)
-        audio_feats = audio_feats + self.mert_f2_2(F.silu(self.mert_f1_2(audio_feats_norm)) * self.mert_f3_2(audio_feats_norm))
+        audio_feats_norm = self.mu_mert_norm_2(audio_feats)
+        audio_feats = audio_feats + self.mu_mert_f2_2(F.silu(self.mu_mert_f1_2(audio_feats_norm)) * self.mu_mert_f3_2(audio_feats_norm))
 
-        audio_feats_norm = self.mert_norm_3(audio_feats)
-        audio_feats = audio_feats + self.mert_f2_3(F.silu(self.mert_f1_3(audio_feats_norm)) * self.mert_f3_3(audio_feats_norm))
+        audio_feats_norm = self.mu_mert_norm_3(audio_feats)
+        audio_feats = audio_feats + self.mu_mert_f2_3(F.silu(self.mu_mert_f1_3(audio_feats_norm)) * self.mu_mert_f3_3(audio_feats_norm))
         return audio_feats
 
     @torch.inference_mode()
