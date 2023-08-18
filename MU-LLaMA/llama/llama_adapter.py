@@ -21,16 +21,16 @@ import torchaudio
 class LLaMA_adapter(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
     """
-    def __init__(self, llama_ckpt_dir, llama_tokenizer, knn=False, phase="finetune", legacy_bridge=False):
+    def __init__(self, llama_ckpt_dir, llama_tokenizer, mert_path, knn=False, phase="finetune", legacy_bridge=False):
         super().__init__()
 
         # 1. mert, mert aggregator and mert projector
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         # The model files for MERT can be downloaded here in case of network issues:
         # https://huggingface.co/m-a-p/MERT-v1-330M
-        # And change the model name to the path to downloaded model directory
-        self.mert_model = AutoModel.from_pretrained("/hpctmp/e0589920/MERT-v1-330M", trust_remote_code=True).to(self.device)
-        self.mert_processor = Wav2Vec2FeatureExtractor.from_pretrained("/hpctmp/e0589920/MERT-v1-330M", trust_remote_code=True)
+        # And set the mert_path argument to directory with the model files
+        self.mert_model = AutoModel.from_pretrained(mert_path, trust_remote_code=True).to(self.device)
+        self.mert_processor = Wav2Vec2FeatureExtractor.from_pretrained(mert_path, trust_remote_code=True)
         self.mu_mert_agg = nn.Conv1d(in_channels=25, out_channels=1, kernel_size=1)
         self.mu_mert_proj = nn.Linear(1024, 4096)
 

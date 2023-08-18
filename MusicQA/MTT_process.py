@@ -11,8 +11,14 @@ import torch
 import re
 import os
 from tqdm import tqdm
+import argparse
 
-df = pd.read_csv("./MTT/annotations_final.csv", sep="\t")
+parser = argparse.ArgumentParser()
+parser.add_argument('--dir', help='Directory of the MusicCaps dataset', default="./MTT")
+parser.add_argument('--resume', help='Flag to resume generation', store_action=True)
+args = parser.parse_args()
+
+df = pd.read_csv(f"{args.dir}/annotations_final.csv", sep="\t")
 
 # The model files for MERT can be downloaded here in case of network issues:
 # https://huggingface.co/mosaicml/mpt-7b-chat
@@ -149,8 +155,8 @@ def get_open_qa(caption):
     return open_bot([[caption, ""]])
 
 
-if os.path.exists("./MTT/MTT_AQA.csv"):
-    df_qa = pd.read_csv("./MTT/MTT_AQA.csv", sep=";")
+if args.resume and os.path.exists(f"{args.dir}/MTT_AQA.csv"):
+    df_qa = pd.read_csv(f"{args.dir}/MTT_AQA.csv", sep=";")
     filename_set = set(df_qa["audio_name"].values.tolist())
     data = df_qa.to_dict(orient='list')
     del data['Unnamed: 0']
@@ -194,9 +200,9 @@ for i, row in tqdm(df.iterrows(), total=len(df)):
         data["audio_name"].append(filename)
         if count % 10 == 0:
             df_qa = pd.DataFrame(data)
-            df_qa.to_csv("./MTT/MTT_AQA.csv", sep=";")
+            df_qa.to_csv(f"{args.dir}/MTT_AQA.csv", sep=";")
     except:
         continue
 
 df_qa = pd.DataFrame(data)
-df_qa.to_csv("./MTT/MTT_AQA.csv", sep=";")
+df_qa.to_csv(f"{args.dir}/MTT_AQA.csv", sep=";")

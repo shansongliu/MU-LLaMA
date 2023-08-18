@@ -33,6 +33,8 @@ def get_args_parser():
                         help='Type of LLaMA model') #
     parser.add_argument('--llama_path', default='/path/to/llama', type=str,
                         help='path to LLaMA pretrained checkpoint')
+    parser.add_argument('--mert_path', default='m-a-p/MERT-v1-330M', type=str,
+                        help='path to MERT pretrained checkpoint')
     parser.add_argument('--max_words', default=96, type=int,
                         help='max number of input words')
 
@@ -102,7 +104,7 @@ def main(args):
     llama_type = args.llama_type
     llama_ckpt_dir = os.path.join(args.llama_path, llama_type)
     llama_tokenzier_path = os.path.join(args.llama_path, 'tokenizer.model')
-    model = LLaMA_adapter(llama_ckpt_dir, llama_tokenzier_path, knn=False, phase="pretrain")
+    model = LLaMA_adapter(llama_ckpt_dir, llama_tokenzier_path, args.mert_path, knn=False, phase="pretrain")
 
     model.to(device)
 
