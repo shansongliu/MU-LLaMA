@@ -14,8 +14,8 @@ from tqdm import tqdm
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dir', help='Directory of the MusicCaps dataset', default="./MTT")
-parser.add_argument('--resume', help='Flag to resume generation', store_action=True)
+parser.add_argument('--dir', help='Directory of the MTT dataset', default="./MTT")
+parser.add_argument('--resume', help='Flag to resume generation', action='store_true')
 args = parser.parse_args()
 
 df = pd.read_csv(f"{args.dir}/annotations_final.csv", sep="\t")
@@ -45,7 +45,8 @@ start_message = """<|im_start|>system
 
 start_message_2 = """<|im_start|>system
 - You are given a list of tags describing an audio
-- You will create 5 questions related to the audio based on the list of tags along with answers
+- You will create 5 questions related to the audio based on the sentence along with answers
+- The questions should be relating to things like tempo of the music, mood of the music, instruments used, inference, etc
 - The question answers should be long form
 - The question answers should be numbered <|im_end|>
 """

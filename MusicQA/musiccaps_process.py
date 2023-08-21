@@ -16,7 +16,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dir', help='Directory of the MusicCaps dataset', default="./MusicCaps")
-parser.add_argument('--resume', help='Flag to resume generation', store_action=True)
+parser.add_argument('--resume', help='Flag to resume generation', action='store_true')
 args = parser.parse_args()
 
 musiccaps = pd.read_csv(f"{args.dir}/musiccaps-public.csv")
@@ -46,8 +46,9 @@ start_message = """<|im_start|>system
 """
 start_message_2 = """<|im_start|>system
 - You are given a caption describing an audio
-- You will create 5 questions and answers related to the audio based on the caption
-- The answers should be long form
+- You will create 5 questions related to the audio based on the sentence along with answers
+- The questions should be relating to things like tempo of the music, mood of the music, instruments used, inference, etc
+- The question answers should be long form
 - The question answers should be numbered <|im_end|>
 """
 
