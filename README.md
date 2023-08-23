@@ -16,7 +16,7 @@ The MU-LLaMA model is Music Understanding Language Model designed with the purpo
 
 ## MU-LLaMA Demo
 
-For the working of our model, Facebook's LLaMA model weights are required, details on obtaining these weights are given on [HuggingFace](https://huggingface.co/docs/transformers/main/model_doc/llama). Our pretrained weights for the MU-LLaMA model, finetuned from **LLaMA 7B** can be downloaded here. Once downloaded, store the files in the ckpts folder within the MU-LLaMA directory. 
+For the working of our model, Facebook's LLaMA-2 model weights are required, details on obtaining these weights are given on [HuggingFace](https://huggingface.co/docs/transformers/main/model_doc/llama). Our pretrained weights for the MU-LLaMA model, finetuned from **LLaMA 7B-2** can be downloaded here. Once downloaded, store the files in the ckpts folder within the MU-LLaMA directory. 
 
 Once downloaded the directory structure will be as shown below.
 ```
