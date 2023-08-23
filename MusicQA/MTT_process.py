@@ -11,9 +11,20 @@ import torch
 import re
 import os
 from tqdm import tqdm
+import argparse
 
-df = pd.read_csv("./MTT/annotations_final.csv", sep="\t")
+parser = argparse.ArgumentParser()
+parser.add_argument('--dir', help='Directory of the MTT dataset', default="./MTT")
+parser.add_argument('--resume', help='Flag to resume generation', action='store_true')
+args = parser.parse_args()
 
+df = pd.read_csv(f"{args.dir}/annotations_final.csv", sep="\t")
+
+# The model files for MERT can be downloaded here in case of network issues:
+# https://huggingface.co/mosaicml/mpt-7b-chat
+# Download the following files into a folder: config.json, generation_config.json,pytorch_model-00001-of-00002.bin,
+# pytorch_model-00002-of-00002.bin, pytorch_model.bin.index.json, special_tokens_map.json, tokenizer.json, tokenizer_config.json
+# And change the model_name to the path to downloaded model directory
 model_name = "mosaicml/mpt-7b-chat"
 config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
 config.attn_config['attn_impl'] = 'torch'
@@ -34,7 +45,8 @@ start_message = """<|im_start|>system
 
 start_message_2 = """<|im_start|>system
 - You are given a list of tags describing an audio
-- You will create 5 questions related to the audio based on the list of tags along with answers
+- You will create 5 questions related to the audio based on the sentence along with answers
+- The questions should be relating to things like tempo of the music, mood of the music, instruments used, inference, etc
 - The question answers should be long form
 - The question answers should be numbered <|im_end|>
 """
@@ -144,8 +156,8 @@ def get_open_qa(caption):
     return open_bot([[caption, ""]])
 
 
-if os.path.exists("./MTT/MTT_AQA.csv"):
-    df_qa = pd.read_csv("./MTT/MTT_AQA.csv", sep=";")
+if args.resume and os.path.exists(f"{args.dir}/MTT_AQA.csv"):
+    df_qa = pd.read_csv(f"{args.dir}/MTT_AQA.csv", sep=";")
     filename_set = set(df_qa["audio_name"].values.tolist())
     data = df_qa.to_dict(orient='list')
     del data['Unnamed: 0']
@@ -189,9 +201,9 @@ for i, row in tqdm(df.iterrows(), total=len(df)):
         data["audio_name"].append(filename)
         if count % 10 == 0:
             df_qa = pd.DataFrame(data)
-            df_qa.to_csv("./MTT/MTT_AQA.csv", sep=";")
+            df_qa.to_csv(f"{args.dir}/MTT_AQA.csv", sep=";")
     except:
         continue
 
 df_qa = pd.DataFrame(data)
-df_qa.to_csv("./MTT/MTT_AQA.csv", sep=";")
+df_qa.to_csv(f"{args.dir}/MTT_AQA.csv", sep=";")

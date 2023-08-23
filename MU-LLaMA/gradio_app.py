@@ -1,6 +1,8 @@
 import argparse
 
 import gradio as gr
+import random
+
 import torch.cuda
 
 from diffusers import StableUnCLIPImg2ImgPipeline
@@ -24,12 +26,8 @@ parser.add_argument(
     help="Path to LLaMA pretrained checkpoint",
 )
 args = parser.parse_args()
-
 model = llama.load(args.model, args.llama_dir, knn=True, llama_type=args.llama_type)
 model.eval()
-
-pipe = StableUnCLIPImg2ImgPipeline.from_pretrained("./ckpts/stable-diffusion-2-1-unclip")
-pipe = pipe.to("cuda")
 
 
 def multimodal_generate(
@@ -50,7 +48,7 @@ def multimodal_generate(
     audio = load_and_transform_audio_data([audio_path])
     inputs['Audio'] = [audio, audio_weight]
 
-    image_prompt = prompt # image use original prompt
+    image_prompt = prompt  # image use original prompt
 
     text_output = None
     image_output = None
@@ -61,77 +59,103 @@ def multimodal_generate(
         prompts = [model.tokenizer.encode(x, bos=True, eos=False) for x in prompts]
         with torch.cuda.amp.autocast():
             results = model.generate(inputs, prompts, max_gen_len=max_gen_len, temperature=gen_t, top_p=top_p,
-                                         cache_size=cache_size, cache_t=cache_t, cache_weight=cache_weight)
+                                     cache_size=cache_size, cache_t=cache_t, cache_weight=cache_weight)
         text_output = results[0].strip()
         print(text_output)
 
-    else:
-        # image output
-        image_output = image_generate(inputs, model, pipe, image_prompt, cache_size, cache_t, cache_weight)
+    # else:
+    #     # image output
+    #     image_output = image_generate(inputs, model, pipe, image_prompt, cache_size, cache_t, cache_weight)
 
-    return text_output, image_output
+    return text_output
 
 
 def create_imagebind_llm_demo():
     with gr.Blocks() as imagebind_llm_demo:
-        with gr.Row():
-            with gr.Column():
-                with gr.Row():
-                    audio_path = gr.Audio(label='Audio Input', type='filepath')
-                    audio_weight = gr.Slider(minimum=0.0, maximum=1.0, value=1.0, interactive=True, label='Weight')
-            with gr.Column():
-                with gr.Row():
+        with gr.Column():
+            with gr.Row():
+                audio_path = gr.Audio(label='Audio Input', type='filepath')
+                with gr.Column():
                     output_dropdown = gr.Dropdown(['Text', 'Image'], value='Text', label='Output type')
-                with gr.Row():
-                    prompt = gr.Textbox(lines=4, label="Question")
-                with gr.Row():
-                    cache_size = gr.Slider(minimum=1, maximum=100, value=10, interactive=True, label="Cache Size")
-                    cache_t = gr.Slider(minimum=0.0, maximum=100, value=20, interactive=True, label="Cache Temperature")
-                    cache_weight = gr.Slider(minimum=0.0, maximum=1, value=0.5, interactive=True, label="Cache Weight")
-                with gr.Row() as text_config_row:
-                    max_gen_len = gr.Slider(minimum=1, maximum=512, value=128, interactive=True, label="Max Length")
-                    # with gr.Accordion(label='Advanced options', open=False):
-                    gen_t = gr.Slider(minimum=0, maximum=1, value=0.1, interactive=True, label="Temperature")
-                    top_p = gr.Slider(minimum=0, maximum=1, value=0.75, interactive=True, label="Top p")
-                with gr.Row():
-                    # clear_botton = gr.Button("Clear")
-                    run_botton = gr.Button("Run", variant='primary')
+                    # with gr.Accordion("Advanced Settings", open=False):
+                    with gr.Row():
+                        cache_size = gr.Slider(minimum=1, maximum=100, value=10, interactive=True, label="Cache Size")
+                        cache_t = gr.Slider(minimum=0.0, maximum=100, value=20, interactive=True,
+                                            label="Cache Temperature")
+                        cache_weight = gr.Slider(minimum=0.0, maximum=1, value=0.1, interactive=True,
+                                                 label="Cache Weight")
+                    with gr.Row() as text_config_row:
+                        max_gen_len = gr.Slider(minimum=1, maximum=1024, value=1024, interactive=True, label="Max Length")
+                        gen_t = gr.Slider(minimum=0, maximum=1, value=0.25, interactive=True, label="Temperature")
+                        top_p = gr.Slider(minimum=0, maximum=1, value=1.0, interactive=True, label="Top p")
 
-                with gr.Row():
-                    gr.Markdown("Output")
-                with gr.Row():
-                    text_output = gr.Textbox(lines=11, label='Text Out')
-                    image_output = gr.Image(label='Image Out', visible=False)
+            with gr.Column():
+                chatbot = gr.Chatbot()
+                msg = gr.Textbox(label='Question')
+                clear = gr.ClearButton([msg, chatbot])
 
-    def change_output_type(output_type):
-        if output_type == 'Text':
-            result = [gr.update(visible=False),
-            gr.update(visible=True),
-            gr.update(label='Question'),
-            gr.update(visible=True)]
-        elif output_type == 'Image':
-            result = [gr.update(visible=True),
-            gr.update(visible=False),
-            gr.update(label='Prompt'),
-            gr.update(visible=False)]
+    # def change_output_type(output_type):
+    #     if output_type == 'Text':
+    #         result = [gr.update(visible=False),
+    #         gr.update(visible=True),
+    #         gr.update(label='Question'),
+    #         gr.update(visible=True)]
+    #     elif output_type == 'Image':
+    #         result = [gr.update(visible=True),
+    #         gr.update(visible=False),
+    #         gr.update(label='Prompt'),
+    #         gr.update(visible=False)]
+    #
+    #     return result
 
-        return result
+    def user(user_message, history):
+        return "", history + [[user_message, None]]
 
-    output_dropdown.change(change_output_type, output_dropdown,
-                           [image_output, text_output, prompt, text_config_row])
+    def bot(history, audio_file_path, cache_size_value, cache_t_value, cache_weight_value, max_gen_len_value, gen_t_value, top_p_value):
+        #print(cache_size.value, cache_t.value, cache_weight.value, max_gen_len.value, gen_t.value, top_p.value)
+        bot_message = multimodal_generate(
+            audio_file_path,
+            1,
+            history[-1][0],
+            cache_size_value,
+            cache_t_value,
+            cache_weight_value,
+            max_gen_len_value,
+            gen_t_value, top_p_value, "Text")
+        history[-1][1] = ""
+        for word in bot_message.split():
+            history[-1][1] = " ".join([history[-1][1], word])
+            yield history
 
-    inputs = [
-        audio_path, audio_weight,
-        prompt,
-        cache_size, cache_t, cache_weight,
-        max_gen_len, gen_t, top_p, output_dropdown
-    ]
-    outputs = [text_output, image_output]
-    run_botton.click(fn=multimodal_generate, inputs=inputs, outputs=outputs)
+    def hear_audio(history):
+        return history + [["Listen to this music", None]]
+
+    def start_chat(history):
+        bot_message = "I have listened to the music, please ask any question you want"
+        history[-1][1] = ""
+        for word in bot_message.split():
+            history[-1][1] = " ".join([history[-1][1], word])
+            yield history
+
+    audio_path.upload(hear_audio, chatbot, chatbot, queue=False).then(
+        start_chat, chatbot, chatbot
+    )
+
+    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+        bot, [chatbot, audio_path, cache_size, cache_t, cache_weight, max_gen_len, gen_t, top_p], chatbot
+    )
+
+    clear.click(lambda: None, None, chatbot, queue=False)
+
+    # output_dropdown.change(change_output_type, output_dropdown,
+    #                        [image_output, text_output, prompt, text_config_row])
+    #
 
     return imagebind_llm_demo
 
 
+# pipe = StableUnCLIPImg2ImgPipeline.from_pretrained("./ckpts/stable-diffusion-2-1-unclip")
+# pipe = pipe.to("cuda")
 description = """
 # MU-LLaMA🎧
 """
@@ -140,5 +164,6 @@ with gr.Blocks(theme=gr.themes.Default(), css="#pointpath {height: 10em} .label 
     gr.Markdown(description)
     create_imagebind_llm_demo()
 
-
-demo.queue(api_open=True, concurrency_count=1).launch(share=False, inbrowser=True, server_name='0.0.0.0', server_port=24000)
+if __name__ == "__main__":
+    demo.queue(api_open=True, concurrency_count=1).launch(share=False, inbrowser=True, server_name='0.0.0.0',
+                                                          server_port=24000, debug=True)

@@ -48,7 +48,9 @@ To train the MU-LLaMA model, follow the steps as below.
 
 ### MusicQA Dataset
 
-We use the [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and the [MagnaTagATune](https://mirg.city.ac.uk/codeapps/the-magnatagatune-dataset) dataset to generate our MusicQA dataset. You can download the generated MusicQA dataset [here](./). To generate the dataset yourself, first download the MusicCaps and MTT datasets. Once downloaded, the directory structure would be as shown.
+We use the [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and the [MagnaTagATune](https://mirg.city.ac.uk/codeapps/the-magnatagatune-dataset) dataset to generate our training MusicQA dataset and the [MTG-Jamendo](https://github.com/MTG/mtg-jamendo-dataset) for evaluation. You can download the generated MusicQA dataset [here](https://huggingface.co/datasets/mu-llama/MusicQA). 
+
+To generate the dataset yourself, first download the MusicCaps, MTT and MTG datasets. Once downloaded, the directory structure would be as shown.
 
 ```
 .
@@ -62,42 +64,60 @@ We use the [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and t
 │   │   ├── audios
 │   │   │   │── ...
 │   │   ├── musiccaps-public.csv
+│   ├── MTG
+│   │   ├── audios
+│   │   │   │── 00
+│   │   │   │── 01
+│   │   │   │── ...
+│   │   ├── raw_30s_cleantags_50artists.tsv
 │   ├── MTT_process.py
 │   ├── musiccaps_process.py
+│   ├── MTG_process.py
 │   ├── generate_dataset.py
 └── ...
 ```
 
 The MusicQA dataset generation is a very computationally intensive process which takes around 8 days per dataset on a Tesla V100-SXM2-32GB GPU, so it is recommended to download our generated dataset.
 
-> &#128221; **Note**:
-> Run the following command to flatten the MTT audio file structure once downloaded and extracted,
+> &#128221; **Notes**:
+> Run the following command to flatten the MTT audio file structure once downloaaded and extracted,
 ```
 find ./MTT/audios -mindepth 2 -type f -exec mv -t ./MTT/audios -i '{}' +
 ```
+> We only use the folders 00 to 09 from the MTG dataset
 
 
-By running [***musiccaps_process.py***](./MusicQA/musiccaps_process.py) and [***MTT_process.py***](./MusicQA/MTT_process.py), you can generate the question answer pairs from each of the datasets and by running [***generate_dataset.py***](./MusicQA/generate_dataset.py) the final dataset will be generated.
+By running [***musiccaps_process.py***](./MusicQA/musiccaps_process.py), [***MTT_process.py***](./MusicQA/MTT_process.py) and [***MTG_process.py***](./MusicQA/MTG_process.py), you can generate the question answer pairs from each of the datasets and by running [***generate_dataset.py***](./MusicQA/generate_dataset.py) the final datasets for pretraining, finetuning and evaluation will be generated.
 
 ```
-usage: generate_dataset.py [-h] --mtt MTT --musiccaps MUSICCAPS --musicqa MUSICQA
+usage: generate_dataset.py [-h] --mtt MTT --mtg MTG --musiccaps MUSICCAPS --musicqa MUSICQA
 
 optional arguments:
   -h, --help            show this help message and exit
   --mtt MTT             Directory of the MTT dataset
+  --mtg MTG             Directory of the MTG dataset
   --musiccaps MUSICCAPS
                         Directory of the MusicCaps dataset
   --musicqa MUSICQA     Directory of the MusicQA dataset to be generated
 ```
 
-### MU-LLaMA Training
+### MU-LLaMA Pretraining
 
-To train the MU-LLaMA model, use the [***finetune.sh***](./MU-LLaMA/finetune.sh) script.
+To pretrain the MU-LLaMA model, we use the MusicCaps part of the MusicQA dataset and the Alpaca Instruction dataset with the [***pretrain.sh***](./MU-LLaMA/pretrain.sh) script.
 ```
-./finetune.sh ./ckpts/LLaMA ./ckpts/7B.pth ./musicqa.yaml ./ckpts/MU-LLaMA
+./pretrain.sh ./ckpts/LLaMA ./configs/pretrain.yaml ./ckpts/MU-LLaMA_Pretrain
 ```
 
-This will train the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. The MU-LLaMA model with 7B parameters takes approximately 2 days to train on a Tesla V100-SXM2-32GB GPU. Once trained, the model can be tested using the Gradio demo.
+This will pretrain the MU-LLaMA model for 150 epochs. The hyperparameters can be modified in the [***pretrain.sh***](./MU-LLaMA/pretrain.sh) file. 
+
+### MU-LLaMA Finetuning
+
+To finetune the MU-LLaMA model, we use the MTT part of the MusicQA dataset with the [***finetune.sh***](./MU-LLaMA/finetune.sh) script.
+```
+./finetune.sh ./ckpts/LLaMA ./ckpts/MU-LLaMA_Pretrain/checkpoint.pth ./configs/finetune.yaml ./ckpts/MU-LLaMA_Finetune
+```
+
+This will finetune the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. The MU-LLaMA model with 7B parameters takes approximately 2 days to train on a Tesla V100-SXM2-32GB GPU. Once trained, the model can be tested using the Gradio demo.
 
 ### MU-LLaMA Inference
 
@@ -107,7 +127,7 @@ usage: inference.py [-h] [--model MODEL] [--llama_type LLAMA_TYPE] [--llama_dir 
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model MODEL         Name of or path to the trained checkpoint
+  --model MODEL         Name of or path to ImageBind-LLM pretrained checkpoint
   --llama_type LLAMA_TYPE
                         Type of llama original weight
   --llama_dir LLAMA_DIR
@@ -116,6 +136,18 @@ optional arguments:
                         Path to the input music file
   --question QUESTION   Question to ask the model
 ```
+
+### MU-LLaMA Evaluation Results
+
+Our model was compared against audio enabled models such as the Listen, Think and Understand (LTU) model and the LLaMA Adapter model trained on our MusicQA dataset. We evaluate the models using BLEU (B-U), METEOR (M-R), ROUGE<sub>L</sub> (R-L) and BERT-Score (BERT-S) which are common evaluation metrics for text generation. For the BLEU score, a weighted average of BLEU<sub>1</sub>, BLEU<sub>2</sub>, BLEU<sub>3</sub> and BLEU<sub>4</sub> (weight = 0.25 for each) is used.
+
+
+| **Model**         | **B-U &#8593;**        | **M-R &#8593;**        | **R-L &#8593;**        | **BERT-S &#8593;**        |
+|-------------------|------------------------|------------------------|------------------------|---------------------------|
+| LTU               | 0.242                  | 0.274                  | 0.326                  | 0.887                     |
+| LLaMA Adapter     | 0.273                  | 0.334                  | 0.413                  | 0.895                     |
+| **MU-LLaMA**      | **0.306**              | **0.385**              | **0.466**              | **0.901**                 |
+
 
 ## Acknowledgements
 
