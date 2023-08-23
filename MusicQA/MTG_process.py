@@ -189,8 +189,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 count = 0
 for tag_id, row in tqdm(mtg.items(), total=len(mtg)):
-    filename = f"{args.dir}/audios/{row['path']}"
-    if filename in filename_set or not os.path.exists(filename):
+    filename = f"{args.dir}/{row['path']}"
+    if row['path'] in filename_set or not os.path.exists(filename):
         continue
     caption = ", ".join(x.split("---")[-1] for x in row['tags'])
     qa1 = get_qa(caption)

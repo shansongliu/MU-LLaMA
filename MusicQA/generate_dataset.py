@@ -84,16 +84,16 @@ json.dump(finetune_musicqa, open(f"{args.musicqa}/FinetuneMusicQA.json", "w"), i
 eval_musicqa = []
 
 for i, row in tqdm(mtg_df.iterrows(), total=len(mtg_df)):
-    if not os.path.exists(f"{args.mtg}/audios/{row[0]}"):
+    if not os.path.exists(f"{args.mtg}/{row[0]}"):
         continue
     try:
         file_format = row[0].split('.')[-1]
         filename = f"{str(count).zfill(6)}.wav"
         if file_format == "mp3":
-            sound = AudioSegment.from_mp3(f"{args.mtg}/audios/{row[0]}")
+            sound = AudioSegment.from_mp3(f"{args.mtg}/{row[0]}")
             sound.export(f"{args.musicqa}/audios/{filename}", format="wav")
         else:
-            copyfile(f"{args.mtg}/audios/{row[0]}", f"{args.musicqa}/audios/{filename}")
+            copyfile(f"{args.mtg}/{row[0]}", f"{args.musicqa}/audios/{filename}")
         for j in range(4):
             eval_musicqa.append({"audio_name": filename,
                             "conversation": [{"from": "human", "value": q_set[j]},
