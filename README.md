@@ -5,7 +5,7 @@
   </h1>
 </div>
 
-This is the official repository for *MU-LLaMA: Large Language Model for Music Question Answering*
+This is the official repository for *[Music Understanding LLaMA: Advancing Text-to-Music Generation with Question Answering and Captioning](https://arxiv.org/abs/2308.11276)*
 
 ## Introduction
 The MU-LLaMA model is Music Understanding Language Model designed with the purpose of answering questions based on music. Our model is also designed with the purpose of captioning music files to generate Text-to-Music Generation datasets. We also provide the code for generating our MusicQA dataset from [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and the [MagnaTagATune](https://mirg.city.ac.uk/codeapps/the-magnatagatune-dataset) datasets.
@@ -16,7 +16,7 @@ The MU-LLaMA model is Music Understanding Language Model designed with the purpo
 
 ## MU-LLaMA Demo
 
-For the working of our model, Facebook's LLaMA model weights are required, details on obtaining these weights are given on [HuggingFace](https://huggingface.co/docs/transformers/main/model_doc/llama). Our pretrained weights for the MU-LLaMA model, finetuned from **LLaMA 7B** can be downloaded here. Once downloaded, store the files in the ckpts folder within the MU-LLaMA directory. 
+For the working of our model, Facebook's LLaMA-2 model weights are required, details on obtaining these weights are given on [HuggingFace](https://huggingface.co/docs/transformers/main/model_doc/llama). Our pretrained weights for the MU-LLaMA model, finetuned from **LLaMA 7B-2** can be downloaded [here](https://huggingface.co/mu-llama/MU-LLaMA/tree/main). Once downloaded, store the files in the ckpts folder within the MU-LLaMA directory. 
 
 Once downloaded the directory structure will be as shown below.
 ```
@@ -105,7 +105,7 @@ optional arguments:
 
 To pretrain the MU-LLaMA model, we use the MusicCaps part of the MusicQA dataset and the Alpaca Instruction dataset with the [***pretrain.sh***](./MU-LLaMA/pretrain.sh) script.
 ```
-./pretrain.sh ./ckpts/LLaMA ./configs/pretrain.yaml ./ckpts/MU-LLaMA_Pretrain
+./pretrain.sh ./ckpts/LLaMA-2 ./configs/pretrain.yaml ./ckpts/MU-LLaMA_Pretrain
 ```
 
 This will pretrain the MU-LLaMA model for 150 epochs. The hyperparameters can be modified in the [***pretrain.sh***](./MU-LLaMA/pretrain.sh) file. 
@@ -114,7 +114,7 @@ This will pretrain the MU-LLaMA model for 150 epochs. The hyperparameters can be
 
 To finetune the MU-LLaMA model, we use the MTT part of the MusicQA dataset with the [***finetune.sh***](./MU-LLaMA/finetune.sh) script.
 ```
-./finetune.sh ./ckpts/LLaMA ./ckpts/MU-LLaMA_Pretrain/checkpoint.pth ./configs/finetune.yaml ./ckpts/MU-LLaMA_Finetune
+./finetune.sh ./ckpts/LLaMA-2 ./ckpts/MU-LLaMA_Pretrain/checkpoint.pth ./configs/finetune.yaml ./ckpts/MU-LLaMA_Finetune
 ```
 
 This will finetune the MU-LLaMA model for 20 epochs. The hyperparameters can be modified in the [***finetune.sh***](./MU-LLaMA/finetune.sh) file. The MU-LLaMA model with 7B parameters takes approximately 2 days to train on a Tesla V100-SXM2-32GB GPU. Once trained, the model can be tested using the Gradio demo.
