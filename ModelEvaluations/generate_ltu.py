@@ -8,7 +8,7 @@ from collections import defaultdict
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--demo', help='Directory of the MTT dataset', default="https://6654419aa961b664df.gradio.live")
+parser.add_argument('--demo', help='Link to the LTU Demo Page', default="https://6654419aa961b664df.gradio.live")
 args = parser.parse_args()
 
 mtg = json.load(open("../MusicQA/MusicQA/EvalMusicQA.json"))
