@@ -39,8 +39,8 @@ fileset = set()
 out_filename = "./results/ltu_data.json"
 
 if os.path.exists(out_filename):
-    ltu_data = json.load(open(out_filename, 'r'))
-    fileset = set([f['audio_name'] for f in ltu_data])
+    ltu_data = defaultdict(lambda: {}, json.load(open(out_filename, 'r')))
+    fileset = set(ltu_data.keys())
 
 count = 0
 

@@ -107,8 +107,10 @@ if not os.path.exists("./results"):
     os.makedirs("./results")
 
 if os.path.exists(out_filename):
-    mullama_data = json.load(open(out_filename, 'r'))
-    fileset = set([f['audio_name'] for f in mullama_data])
+    mullama_data = defaultdict(lambda: {}, json.load(open(out_filename, 'r')))
+    fileset = set(mullama_data.keys())
+
+print(f"Already Completed: {len(fileset)}")
 
 count = 0
 
@@ -123,7 +125,7 @@ for row in mtg:
     result = []
     for j in range(0, len(audio_splits), 2):
         audio = audio_splits[j]
-        a = qa_bot(audio, query=q)
+        result.append(qa_bot(audio, query=q))
         pbar.update(1)
     mullama_data[row["audio_name"]][q] = " ".join(result)
     count += 1

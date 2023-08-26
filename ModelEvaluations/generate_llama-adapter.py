@@ -24,7 +24,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-model = llama.load(args.model, args.lama_dir)
+model = llama.load(args.model, args.llama_dir)
 model.eval()
 
 
@@ -79,14 +79,16 @@ from tqdm import tqdm
 
 llama_data = defaultdict(lambda: {})
 fileset = set()
-out_filename = "./results/llama-adapter_data_data.json"
+out_filename = "./results/llama-adapter_data.json"
 
 if not os.path.exists("./results"):
     os.makedirs("./results")
 
 if os.path.exists(out_filename):
-    llama_data = json.load(open(out_filename, 'r'))
-    fileset = set([f['audio_name'] for f in llama_data])
+    llama_data = defaultdict(lambda: {}, json.load(open(out_filename, 'r')))
+    fileset = set(llama_data.keys())
+
+print(f"Already Completed: {len(fileset)}")
 
 count = 0
 
@@ -101,7 +103,7 @@ for row in mtg:
     result = []
     for j in range(0, len(audio_splits), 2):
         audio = audio_splits[j]
-        a = qa_bot(audio, query=q)
+        result.append(qa_bot(audio, query=q))
         pbar.update(1)
     llama_data[row["audio_name"]][q] = " ".join(result)
     count += 1
