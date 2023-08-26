@@ -7,6 +7,8 @@
 
 This is the official repository for *[Music Understanding LLaMA: Advancing Text-to-Music Generation with Question Answering and Captioning](https://arxiv.org/abs/2308.11276)*
 
+The demo page with more information regarding the MU-LLaMA model is avilable [here](https://crypto-code.github.io/MU-LLaMA-Demo/).
+
 ## Introduction
 The MU-LLaMA model is Music Understanding Language Model designed with the purpose of answering questions based on music. Our model is also designed with the purpose of captioning music files to generate Text-to-Music Generation datasets. We also provide the code for generating our MusicQA dataset from [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and the [MagnaTagATune](https://mirg.city.ac.uk/codeapps/the-magnatagatune-dataset) datasets.
 
