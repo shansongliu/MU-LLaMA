@@ -5,7 +5,7 @@
   </h1>
 </div>
 
-This is the official repository for *MU-LLaMA: Large Language Model for Music Question Answering*
+This is the official repository for *[Music Understanding LLaMA: Advancing Text-to-Music Generation with Question Answering and Captioning](https://arxiv.org/abs/2308.11276)*
 
 ## Introduction
 The MU-LLaMA model is Music Understanding Language Model designed with the purpose of answering questions based on music. Our model is also designed with the purpose of captioning music files to generate Text-to-Music Generation datasets. We also provide the code for generating our MusicQA dataset from [MusicCaps](https://www.kaggle.com/datasets/googleai/musiccaps) and the [MagnaTagATune](https://mirg.city.ac.uk/codeapps/the-magnatagatune-dataset) datasets.
@@ -16,7 +16,7 @@ The MU-LLaMA model is Music Understanding Language Model designed with the purpo
 
 ## MU-LLaMA Demo
 
-For the working of our model, Facebook's LLaMA-2 model weights are required, details on obtaining these weights are given on [HuggingFace](https://huggingface.co/docs/transformers/main/model_doc/llama). Our pretrained weights for the MU-LLaMA model, finetuned from **LLaMA 7B-2** can be downloaded here. Once downloaded, store the files in the ckpts folder within the MU-LLaMA directory. 
+For the working of our model, Facebook's LLaMA-2 model weights are required, details on obtaining these weights are given on [HuggingFace](https://huggingface.co/docs/transformers/main/model_doc/llama). Our pretrained weights for the MU-LLaMA model, finetuned from **LLaMA 7B-2** can be downloaded [here](https://huggingface.co/mu-llama/MU-LLaMA/tree/main). Once downloaded, store the files in the ckpts folder within the MU-LLaMA directory. 
 
 Once downloaded the directory structure will be as shown below.
 ```
