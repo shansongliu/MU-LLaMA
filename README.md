@@ -137,10 +137,42 @@ optional arguments:
   --question QUESTION   Question to ask the model
 ```
 
-### MU-LLaMA Evaluation Results
+### MU-LLaMA Evaluation
 
 Our model was compared against audio enabled models such as the Listen, Think and Understand (LTU) model and the LLaMA Adapter model trained on our MusicQA dataset. We evaluate the models using BLEU (B-U), METEOR (M-R), ROUGE<sub>L</sub> (R-L) and BERT-Score (BERT-S) which are common evaluation metrics for text generation. For the BLEU score, a weighted average of BLEU<sub>1</sub>, BLEU<sub>2</sub>, BLEU<sub>3</sub> and BLEU<sub>4</sub> (weight = 0.25 for each) is used.
 
+The evaluation scripts are given in the ModelEvaluations folder. The generate scripts are used to generate the answers for all the questions in the dataset.
+
+```
+usage: generate_mullama.py [-h] [--model MODEL] [--knn KNN] [--llama_type LLAMA_TYPE] [--llama_dir LLAMA_DIR]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --model MODEL         Name of or path to the trained checkpoint
+  --knn KNN             Name of or path to the knn checkpoint
+  --llama_type LLAMA_TYPE
+                        Type of llama original weight
+  --llama_dir LLAMA_DIR
+                        Path to LLaMA pretrained checkpoint
+```
+```
+usage: generate_ltu.py [-h] [--demo DEMO]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --demo DEMO  Link to the LTU Demo Page
+```
+```
+usage: generate_llama-adapter.py [-h] [--model MODEL] [--llama_dir LLAMA_DIR]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --model MODEL         Name of or path to the trained checkpoint
+  --llama_dir LLAMA_DIR
+                        Path to LLaMA pretrained checkpoint
+```
+
+Once generated, [***evaluate.py***](./ModelEvaluations/evaluate.py) can be used to evaluated the generated answers for the three models. The results are shown below.
 
 | **Model**         | **B-U &#8593;**        | **M-R &#8593;**        | **R-L &#8593;**        | **BERT-S &#8593;**        |
 |-------------------|------------------------|------------------------|------------------------|---------------------------|
