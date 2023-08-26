@@ -5,6 +5,8 @@
   </h1>
 </div>
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/music-understanding-llama-advancing-text-to/music-question-answering-on-musicqa-dataset)](https://paperswithcode.com/sota/music-question-answering-on-musicqa-dataset?p=music-understanding-llama-advancing-text-to)
+
 This is the official repository for *[Music Understanding LLaMA: Advancing Text-to-Music Generation with Question Answering and Captioning](https://arxiv.org/abs/2308.11276)*
 
 The demo page with more information regarding the MU-LLaMA model is avilable [here](https://crypto-code.github.io/MU-LLaMA-Demo/).
