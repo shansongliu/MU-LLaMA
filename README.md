@@ -5,6 +5,8 @@
   </h1>
 </div>
 
+[![PWC](https://img.shields.io/badge/%F0%9F%93%8E%20arXiv-Paper-red)](https://arxiv.org/abs/2308.11276)
+[![PWC](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-MusicQA%20Dataset-green)]([https://arxiv.org/abs/2308.11276](https://huggingface.co/datasets/mu-llama/MusicQA))
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/music-understanding-llama-advancing-text-to/music-question-answering-on-musicqa-dataset)](https://paperswithcode.com/sota/music-question-answering-on-musicqa-dataset?p=music-understanding-llama-advancing-text-to)
 
 This is the official repository for *[Music Understanding LLaMA: Advancing Text-to-Music Generation with Question Answering and Captioning](https://arxiv.org/abs/2308.11276)*
