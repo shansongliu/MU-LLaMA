@@ -17,8 +17,8 @@ parser.add_argument(
     help="Name of or path to the trained checkpoint",
 )
 parser.add_argument(
-    "--knn", default="../MU-LLaMA/ckpts/knn.index", type=str,
-    help="Name of or path to the knn checkpoint",
+    "--knn", default="../MU-LLaMA/ckpts", type=str,
+    help="Name of or path to the directory with knn checkpoint",
 )
 parser.add_argument(
     "--llama_type", default="7B", type=str,

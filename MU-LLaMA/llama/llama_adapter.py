@@ -21,7 +21,9 @@ import torchaudio
 class LLaMA_adapter(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
     """
-    def __init__(self, llama_ckpt_dir, llama_tokenizer, mert_path, knn=False, phase="finetune", legacy_bridge=False):
+
+    def __init__(self, llama_ckpt_dir, llama_tokenizer, mert_path, knn=False, knn_dir="./ckpts", phase="finetune",
+                 legacy_bridge=False):
         super().__init__()
 
         # 1. mert, mert aggregator and mert projector
@@ -40,7 +42,6 @@ class LLaMA_adapter(nn.Module):
         else:
             bridge_norm_layer = RMSNorm
             bridge_bias = False
-
 
         self.mu_mert_norm_1 = bridge_norm_layer(4096)
         self.mu_mert_f1_1 = nn.Linear(4096, 4096 * 4, bias=bridge_bias)
@@ -65,7 +66,8 @@ class LLaMA_adapter(nn.Module):
             params = json.loads(f.read())
         bias_lora = phase == "finetune"
         model_args: ModelArgs = ModelArgs(
-            max_seq_len=8192, max_batch_size=1, w_bias=bias_lora, w_lora=bias_lora, **params) # max_batch_size only affects inference
+            max_seq_len=8192, max_batch_size=1, w_bias=bias_lora, w_lora=bias_lora,
+            **params)  # max_batch_size only affects inference
         print(f"model args: {model_args}")
         model_args.vocab_size = self.tokenizer.n_words
         if torch.cuda.is_available():
@@ -130,7 +132,7 @@ class LLaMA_adapter(nn.Module):
             ckpt = torch.load(ckpt, map_location='cpu')
             self.llama.load_state_dict(ckpt, strict=False)
         '''
-        
+
         # 4. prefix
         self.query_layer = 20
         self.query_len = 1
@@ -140,11 +142,10 @@ class LLaMA_adapter(nn.Module):
         self.knn = knn
         if knn:
             import faiss
-            self.index = faiss.read_index("./ckpts/knn.index")
+            self.index = faiss.read_index(download("https://huggingface.co/csuhan/knn/resolve/main/knn.index", knn_dir))
 
         # 6. training criterion
         self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0)
-
 
         self.phase = phase
         self.set_default_trainability(self.phase)
@@ -175,17 +176,18 @@ class LLaMA_adapter(nn.Module):
         for key, value in self.get_trainable_params(phase).items():
             value.data = value.data.float()
             value.requires_grad = True
-    
+
     def load_audio(self, audio_path, target_sr=16000):
         y, sr = torchaudio.load(audio_path)
         resampler = torchaudio.transforms.Resample(sr, target_sr, dtype=y.dtype)
         audio = resampler(y)
         return audio, target_sr
-    
+
     def encode_audio(self, x):
         xs = []
         for sub_x in x:
-            inputs = self.mert_processor(sub_x, sampling_rate=self.mert_processor.sampling_rate, return_tensors="pt").to(self.device)
+            inputs = self.mert_processor(sub_x, sampling_rate=self.mert_processor.sampling_rate,
+                                         return_tensors="pt").to(self.device)
             with torch.no_grad():
                 outputs = self.mert_model(**inputs, output_hidden_states=True)
             all_layer_hidden_states = torch.stack(outputs.hidden_states).squeeze()
@@ -201,9 +203,9 @@ class LLaMA_adapter(nn.Module):
         for input_type, (input, input_weight) in inputs.items():
             outputs.append(F.normalize(self.encode_audio(input), dim=-1))
             outputs_weights.append(input_weight)
-        outputs_weights = [x/(sum(outputs_weights)+1e-6) for x in outputs_weights]
+        outputs_weights = [x / (sum(outputs_weights) + 1e-6) for x in outputs_weights]
 
-        audio_feats = sum([output*output_weight for output, output_weight in zip(outputs, outputs_weights)])
+        audio_feats = sum([output * output_weight for output, output_weight in zip(outputs, outputs_weights)])
         device = audio_feats.device
 
         if self.knn:
@@ -219,19 +221,22 @@ class LLaMA_adapter(nn.Module):
             audio_feats = sims @ prototypes
             audio_feats = audio_feats / audio_feats.norm(dim=-1, keepdim=True)
 
-            audio_feats = (1-cache_weight) * audio_feats_ori + cache_weight * audio_feats
+            audio_feats = (1 - cache_weight) * audio_feats_ori + cache_weight * audio_feats
             audio_feats = audio_feats / audio_feats.norm(dim=-1, keepdim=True)
 
-        audio_feats = audio_feats.unsqueeze(1) # B, 1, D
+        audio_feats = audio_feats.unsqueeze(1)  # B, 1, D
         audio_feats = self.mu_mert_proj(audio_feats)
         audio_feats_norm = self.mu_mert_norm_1(audio_feats)
-        audio_feats = audio_feats + self.mu_mert_f2_1(F.silu(self.mu_mert_f1_1(audio_feats_norm)) * self.mu_mert_f3_1(audio_feats_norm))
+        audio_feats = audio_feats + self.mu_mert_f2_1(
+            F.silu(self.mu_mert_f1_1(audio_feats_norm)) * self.mu_mert_f3_1(audio_feats_norm))
 
         audio_feats_norm = self.mu_mert_norm_2(audio_feats)
-        audio_feats = audio_feats + self.mu_mert_f2_2(F.silu(self.mu_mert_f1_2(audio_feats_norm)) * self.mu_mert_f3_2(audio_feats_norm))
+        audio_feats = audio_feats + self.mu_mert_f2_2(
+            F.silu(self.mu_mert_f1_2(audio_feats_norm)) * self.mu_mert_f3_2(audio_feats_norm))
 
         audio_feats_norm = self.mu_mert_norm_3(audio_feats)
-        audio_feats = audio_feats + self.mu_mert_f2_3(F.silu(self.mu_mert_f1_3(audio_feats_norm)) * self.mu_mert_f3_3(audio_feats_norm))
+        audio_feats = audio_feats + self.mu_mert_f2_3(
+            F.silu(self.mu_mert_f1_3(audio_feats_norm)) * self.mu_mert_f3_3(audio_feats_norm))
         return audio_feats
 
     @torch.inference_mode()
@@ -244,13 +249,12 @@ class LLaMA_adapter(nn.Module):
         mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=h.device)
         mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
 
-
         for layer in self.llama.layers[:-1 * self.query_layer]:
             h = layer(h, start_pos, freqs_cis, mask)
         prefix_query = self.prefix_query.weight.reshape(
             self.query_layer, 1, 4096).unsqueeze(1)
         prefix_index = 0
-        audio_proj = audio_feats # B, 1, D
+        audio_proj = audio_feats  # B, 1, D
         for layer in self.llama.layers[-1 * self.query_layer:]:
             h = layer(h, start_pos, freqs_cis, mask, audio_proj + prefix_query[prefix_index].repeat(_bsz, 1, 1))
             prefix_index = prefix_index + 1
@@ -367,8 +371,10 @@ _MODELS = {
     "7B": "https://huggingface.co/Cxxs/ImageBind-LLM/resolve/main/7B.pth",
 }
 
+
 def available_models():
     return list(_MODELS.keys())
+
 
 def load(name, llama_dir, device="cuda" if torch.cuda.is_available() else "cpu", download_root='ckpts',
          knn=False, llama_type="7B", phase="finetune"):
