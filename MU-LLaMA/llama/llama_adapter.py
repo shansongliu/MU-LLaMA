@@ -20,7 +20,7 @@ import torchaudio
 class LLaMA_adapter(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
     """
-    def __init__(self, llama_ckpt_dir, llama_tokenizer, mert_path, knn=False, phase="finetune", legacy_bridge=False):
+    def __init__(self, llama_ckpt_dir, llama_tokenizer, mert_path, knn=False, knn_dir="./ckpts", phase="finetune", legacy_bridge=False):
         super().__init__()
 
         # 1. mert, mert aggregator and mert projector
@@ -86,7 +86,7 @@ class LLaMA_adapter(nn.Module):
         self.knn = knn
         if knn:
             import faiss
-            self.index = faiss.read_index("./ckpts/knn.index")
+            self.index = faiss.read_index(download("https://huggingface.co/csuhan/knn/resolve/main/knn.index", knn_dir))
 
         # 6. training criterion
         self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0)
