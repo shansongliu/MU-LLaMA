@@ -43,7 +43,7 @@ Once downloaded the directory structure will be as shown below.
 └── ...
 ```
 
-The demo can be run using [***gradio_app.py***](./MU-LLaMA/gradio_app.py).
+We use Python 3.9.17 for this project and the library requirements are given in [***requirements.txt***](./requirements.txt). The demo can be run using [***gradio_app.py***](./MU-LLaMA/gradio_app.py).
 ```
 python gradio_app.py --model ./ckpts/checkpoint.pth --llama_dir ./ckpts/LLaMA
 ```
