@@ -192,3 +192,15 @@ Once generated, [***evaluate.py***](./ModelEvaluations/evaluate.py) can be used 
 This code contains elements from the following repos:
 - [OpenGVLab/LLaMA-Adapter](https://github.com/OpenGVLab/LLaMA-Adapter)
 - [yizhilll/MERT](https://github.com/yizhilll/MERT)
+
+
+## Cite our work
+If you find this repo useful, please consider citing: 
+```bibtex
+@article{liu2023music,
+  title={{Music Understanding LLaMA: Advancing Text-to-Music Generation with Question Answering and Captioning}},
+  author={Liu, Shansong and Hussain, Atin Sakkeer and Sun, Chenshuo and Shan, Ying},
+  journal={arXiv preprint arXiv:2308.11276},
+  year={2023}
+}
+```
