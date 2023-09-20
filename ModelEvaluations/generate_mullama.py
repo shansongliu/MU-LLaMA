@@ -28,9 +28,13 @@ parser.add_argument(
     "--llama_dir", default="../MU-LLaMA/ckpts/LLaMA-2", type=str,
     help="Path to LLaMA pretrained checkpoint",
 )
+parser.add_argument(
+    "--mert_path", default="m-a-p/MERT-v1-330M", type=str,
+    help="Path to MERT pretrained checkpoint",
+)
 args = parser.parse_args()
 
-model = llama.load(args.model, args.llama_dir, knn=True,
+model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True,
                    knn_dir=args.knn, llama_type=args.llama_type)
 model.eval()
 
