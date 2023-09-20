@@ -43,7 +43,7 @@ Once downloaded the directory structure will be as shown below.
 └── ...
 ```
 
-The demo can be run using [***gradio_app.py***](./MU-LLaMA/gradio_app.py).
+We use Python 3.9.17 for this project and the library requirements are given in [***requirements.txt***](./requirements.txt). The demo can be run using [***gradio_app.py***](./MU-LLaMA/gradio_app.py).
 ```
 python gradio_app.py --model ./ckpts/checkpoint.pth --llama_dir ./ckpts/LLaMA
 ```
@@ -192,3 +192,15 @@ Once generated, [***evaluate.py***](./ModelEvaluations/evaluate.py) can be used 
 This code contains elements from the following repos:
 - [OpenGVLab/LLaMA-Adapter](https://github.com/OpenGVLab/LLaMA-Adapter)
 - [yizhilll/MERT](https://github.com/yizhilll/MERT)
+
+
+## Cite our work
+If you find this repo useful, please consider citing: 
+```bibtex
+@article{liu2023music,
+  title={{Music Understanding LLaMA: Advancing Text-to-Music Generation with Question Answering and Captioning}},
+  author={Liu, Shansong and Hussain, Atin Sakkeer and Sun, Chenshuo and Shan, Ying},
+  journal={arXiv preprint arXiv:2308.11276},
+  year={2023}
+}
+```
