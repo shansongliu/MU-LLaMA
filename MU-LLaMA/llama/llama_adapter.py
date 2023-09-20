@@ -393,8 +393,11 @@ def load(name, llama_dir, device="cuda" if torch.cuda.is_available() else "cpu",
     adapter_ckpt = torch.load(model_path, map_location='cpu')
     model_cfg = adapter_ckpt.get('config', {})
 
+    # The model files for MERT can be downloaded here in case of network issues:
+    # https://huggingface.co/m-a-p/MERT-v1-330M
+    # And set the MERT argument to directory with the model files
     model = LLaMA_adapter(
-        llama_ckpt_dir, llama_tokenzier_path, knn=knn, phase=phase)
+        llama_ckpt_dir, llama_tokenzier_path, "m-a-p/MERT-v1-330M", knn=knn, phase=phase)
 
     load_result = model.load_state_dict(adapter_ckpt['model'], strict=False)
     assert len(load_result.unexpected_keys) == 0, f"Unexpected keys: {load_result.unexpected_keys}"
