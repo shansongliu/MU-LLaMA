@@ -376,7 +376,7 @@ def available_models():
     return list(_MODELS.keys())
 
 
-def load(name, llama_dir, device="cuda" if torch.cuda.is_available() else "cpu", download_root='ckpts',
+def load(name, llama_dir, mert_path="m-a-p/MERT-v1-330M", device="cuda" if torch.cuda.is_available() else "cpu", download_root='ckpts',
          knn=False, llama_type="7B", phase="finetune"):
     if name in _MODELS:
         model_path = download(_MODELS[name], download_root)
@@ -397,7 +397,7 @@ def load(name, llama_dir, device="cuda" if torch.cuda.is_available() else "cpu",
     # https://huggingface.co/m-a-p/MERT-v1-330M
     # And set the MERT argument to directory with the model files
     model = LLaMA_adapter(
-        llama_ckpt_dir, llama_tokenzier_path, "m-a-p/MERT-v1-330M", knn=knn, phase=phase)
+        llama_ckpt_dir, llama_tokenzier_path, mert_path, knn=knn, phase=phase)
 
     load_result = model.load_state_dict(adapter_ckpt['model'], strict=False)
     assert len(load_result.unexpected_keys) == 0, f"Unexpected keys: {load_result.unexpected_keys}"
