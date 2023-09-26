@@ -34,7 +34,7 @@ parser.add_argument(
     help="Path to directory with KNN Index",
 )
 args = parser.parse_args()
-model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True, knn_diir=args.knn_dir, llama_type=args.llama_type)
+model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True, knn_dir=args.knn_dir, llama_type=args.llama_type)
 model.eval()
 
 
