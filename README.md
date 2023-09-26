@@ -129,15 +129,17 @@ This will finetune the MU-LLaMA model for 20 epochs. The hyperparameters can be 
 
 To test the model without Gradio, the [***inference.py***](./MU-LLaMA/inference.py) script can be used.
 ```
-usage: inference.py [-h] [--model MODEL] [--llama_type LLAMA_TYPE] [--llama_dir LLAMA_DIR] --audio_path AUDIO_PATH [--question QUESTION]
+usage: inference.py [-h] [--model MODEL] [--llama_type LLAMA_TYPE] [--llama_dir LLAMA_DIR] [--mert_path MERT_PATH] --audio_path AUDIO_PATH [--question QUESTION]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model MODEL         Name of or path to ImageBind-LLM pretrained checkpoint
+  --model MODEL         Name of or path to the trained checkpoint
   --llama_type LLAMA_TYPE
                         Type of llama original weight
   --llama_dir LLAMA_DIR
                         Path to LLaMA pretrained checkpoint
+  --mert_path MERT_PATH
+                        Path to MERT pretrained checkpoint
   --audio_path AUDIO_PATH
                         Path to the input music file
   --question QUESTION   Question to ask the model
@@ -150,16 +152,18 @@ Our model was compared against audio enabled models such as the Listen, Think an
 The evaluation scripts are given in the ModelEvaluations folder. The generate scripts are used to generate the answers for all the questions in the dataset.
 
 ```
-usage: generate_mullama.py [-h] [--model MODEL] [--knn KNN] [--llama_type LLAMA_TYPE] [--llama_dir LLAMA_DIR]
+usage: generate_mullama.py [-h] [--model MODEL] [--knn KNN] [--llama_type LLAMA_TYPE] [--llama_dir LLAMA_DIR] [--mert_path MERT_PATH]
 
 optional arguments:
   -h, --help            show this help message and exit
   --model MODEL         Name of or path to the trained checkpoint
-  --knn KNN             Name of or path to the knn checkpoint
+  --knn KNN             Name of or path to the directory with knn checkpoint
   --llama_type LLAMA_TYPE
                         Type of llama original weight
   --llama_dir LLAMA_DIR
                         Path to LLaMA pretrained checkpoint
+  --mert_path MERT_PATH
+                        Path to MERT pretrained checkpoint
 ```
 ```
 usage: generate_ltu.py [-h] [--demo DEMO]
