@@ -367,24 +367,8 @@ class LLaMA_adapter(nn.Module):
         return decoded
 
 
-_MODELS = {
-    "7B": "https://huggingface.co/Cxxs/ImageBind-LLM/resolve/main/7B.pth",
-}
-
-
-def available_models():
-    return list(_MODELS.keys())
-
-
-def load(name, llama_dir, mert_path="m-a-p/MERT-v1-330M", device="cuda" if torch.cuda.is_available() else "cpu", download_root='ckpts',
-         knn=False, llama_type="7B", phase="finetune"):
-    if name in _MODELS:
-        model_path = download(_MODELS[name], download_root)
-    elif os.path.isfile(name):
-        model_path = name
-    else:
-        return RuntimeError(f"Model {name} not found; available models = {available_models()}")
-
+def load(model_path, llama_dir, mert_path="m-a-p/MERT-v1-330M", device="cuda" if torch.cuda.is_available() else "cpu",
+         knn=False, knn_dir="./ckpts", llama_type="7B", phase="finetune"):
     llama_ckpt_dir = os.path.join(llama_dir, llama_type)
     llama_tokenzier_path = os.path.join(llama_dir, 'tokenizer.model')
 
@@ -397,7 +381,7 @@ def load(name, llama_dir, mert_path="m-a-p/MERT-v1-330M", device="cuda" if torch
     # https://huggingface.co/m-a-p/MERT-v1-330M
     # And set the MERT argument to directory with the model files
     model = LLaMA_adapter(
-        llama_ckpt_dir, llama_tokenzier_path, mert_path, knn=knn, phase=phase)
+        llama_ckpt_dir, llama_tokenzier_path, mert_path, knn=knn, knn_dir=knn_dir, phase=phase)
 
     load_result = model.load_state_dict(adapter_ckpt['model'], strict=False)
     assert len(load_result.unexpected_keys) == 0, f"Unexpected keys: {load_result.unexpected_keys}"

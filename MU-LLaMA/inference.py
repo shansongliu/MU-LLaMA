@@ -22,6 +22,10 @@ parser.add_argument(
     "--mert_path", default="m-a-p/MERT-v1-330M", type=str,
     help="Path to MERT pretrained checkpoint",
 )
+parser.add_argument(
+    "--knn_dir", default="./ckpts", type=str,
+    help="Path to directory with KNN Index",
+)
 
 parser.add_argument(
     "--audio_path", required=True, type=str,
@@ -31,9 +35,9 @@ parser.add_argument(
     "--question", default="Describe the Audio", type=str,
     help="Question to ask the model",
 )
-args = parser.parse_args()
 
-model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True, llama_type=args.llama_type)
+args = parser.parse_args()
+model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True, knn_diir=args.knn_dir, llama_type=args.llama_type)
 model.eval()
 
 def multimodal_generate(

@@ -1,21 +1,21 @@
 import argparse
 
-import gradio as gr
-import random
-
-import torch.cuda
-
-from diffusers import StableUnCLIPImg2ImgPipeline
-from image_generate import image_generate
-
-import llama
-from util.misc import *
-from data.utils import load_and_transform_audio_data
+# import gradio as gr
+# import random
+#
+# import torch.cuda
+#
+# from diffusers import StableUnCLIPImg2ImgPipeline
+# from image_generate import image_generate
+#
+# import llama
+# from util.misc import *
+# from data.utils import load_and_transform_audio_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--model", default="7B", type=str,
-    help="Name of or path to ImageBind-LLM pretrained checkpoint",
+    "--model", default="./ckpts/checkpoint.pth", type=str,
+    help="Name of or path to MU-LLaMA pretrained checkpoint",
 )
 parser.add_argument(
     "--llama_type", default="7B", type=str,
@@ -29,8 +29,12 @@ parser.add_argument(
     "--mert_path", default="m-a-p/MERT-v1-330M", type=str,
     help="Path to MERT pretrained checkpoint",
 )
+parser.add_argument(
+    "--knn_dir", default="./ckpts", type=str,
+    help="Path to directory with KNN Index",
+)
 args = parser.parse_args()
-model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True, llama_type=args.llama_type)
+model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True, knn_diir=args.knn_dir, llama_type=args.llama_type)
 model.eval()
 
 
