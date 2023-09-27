@@ -2,7 +2,7 @@ fairscale==0.4.13
 sentencepiece==0.1.99
 Pillow==9.5.0
 opencv-python==4.7.0.72
-gradio==3.34.0
+gradio==3.45.0
 tqdm==4.65.0
 autofaiss==2.15.8
 tensorboard==2.12.3
