@@ -1,16 +1,16 @@
 import argparse
 
-# import gradio as gr
-# import random
-#
-# import torch.cuda
-#
-# from diffusers import StableUnCLIPImg2ImgPipeline
-# from image_generate import image_generate
-#
-# import llama
-# from util.misc import *
-# from data.utils import load_and_transform_audio_data
+import gradio as gr
+import random
+
+import torch.cuda
+
+from diffusers import StableUnCLIPImg2ImgPipeline
+from image_generate import image_generate
+
+import llama
+from util.misc import *
+from data.utils import load_and_transform_audio_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -34,7 +34,11 @@ parser.add_argument(
     help="Path to directory with KNN Index",
 )
 args = parser.parse_args()
+<<<<<<< HEAD
 model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=True, knn_dir=args.knn_dir, llama_type=args.llama_type)
+=======
+model = llama.load(args.model, args.llama_dir, knn=True, llama_type=args.llama_type)
+>>>>>>> acc83901c84beffaead4c32f6bda1db320f5843b
 model.eval()
 
 

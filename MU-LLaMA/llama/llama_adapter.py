@@ -21,9 +21,7 @@ import torchaudio
 class LLaMA_adapter(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
     """
-
-    def __init__(self, llama_ckpt_dir, llama_tokenizer, mert_path, knn=False, knn_dir="./ckpts", phase="finetune",
-                 legacy_bridge=False):
+    def __init__(self, llama_ckpt_dir, llama_tokenizer, mert_path, knn=False, knn_dir="./ckpts", phase="finetune", legacy_bridge=False):
         super().__init__()
 
         # 1. mert, mert aggregator and mert projector
