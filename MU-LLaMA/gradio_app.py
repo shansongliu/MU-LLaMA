@@ -1,16 +1,16 @@
 import argparse
 
-# import gradio as gr
-# import random
-#
-# import torch.cuda
-#
-# from diffusers import StableUnCLIPImg2ImgPipeline
-# from image_generate import image_generate
-#
-# import llama
-# from util.misc import *
-# from data.utils import load_and_transform_audio_data
+import gradio as gr
+import random
+
+import torch.cuda
+
+from diffusers import StableUnCLIPImg2ImgPipeline
+from image_generate import image_generate
+
+import llama
+from util.misc import *
+from data.utils import load_and_transform_audio_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
