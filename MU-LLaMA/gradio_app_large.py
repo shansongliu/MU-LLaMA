@@ -1,16 +1,17 @@
 import argparse
 
 import gradio as gr
-import random
 
 import torch.cuda
-
-from diffusers import StableUnCLIPImg2ImgPipeline
-from image_generate import image_generate
 
 import llama
 from util.misc import *
 from data.utils import load_and_transform_audio_data
+
+from mutagen.mp3 import MP3
+from mutagen.wave import WAVE
+
+from pydub import AudioSegment
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -38,6 +39,16 @@ model = llama.load(args.model, args.llama_dir, mert_path=args.mert_path, knn=Tru
 model.eval()
 
 
+def split_audio(audio, i, format):
+    if len(audio) > 60000:
+        audio[:60000].export(f"temp_" + str(i) + f".{format}", format=format)
+        return [f"temp_" + str(i) + f".{format}"] + split_audio(audio[60000:], i + 1, format)
+    if len(audio) > 10000:
+        audio.export(f"temp_" + str(i) + f".{format}", format=format)
+        return [f"temp_" + str(i) + f".{format}"]
+    return []
+
+
 def multimodal_generate(
         audio_path,
         audio_weight,
@@ -49,17 +60,17 @@ def multimodal_generate(
         gen_t, top_p, output_type
 ):
     inputs = {}
-    if audio_path is None:
-        raise gr.Error('Please select an audio')
     if audio_weight == 0:
         raise gr.Error('Please set the weight')
-    audio = load_and_transform_audio_data([audio_path])
+
+    if audio_path is None:
+        audio = None
+    else:
+        audio = load_and_transform_audio_data([audio_path])
+
     inputs['Audio'] = [audio, audio_weight]
 
-    image_prompt = prompt  # image use original prompt
-
     text_output = None
-    image_output = None
     if output_type == "Text":
         # text output
         prompts = [llama.format_prompt(prompt)]
@@ -70,12 +81,48 @@ def multimodal_generate(
                                      cache_size=cache_size, cache_t=cache_t, cache_weight=cache_weight)
         text_output = results[0].strip()
         print(text_output)
-
-    # else:
-    #     # image output
-    #     image_output = image_generate(inputs, model, pipe, image_prompt, cache_size, cache_t, cache_weight)
-
     return text_output
+
+
+def generate_answer(audio_path,
+                    audio_weight,
+                    prompt,
+                    cache_size,
+                    cache_t,
+                    cache_weight,
+                    max_gen_len,
+                    gen_t, top_p, output_type
+                    ):
+    if audio_path is None:
+        raise gr.Error('Please select an audio')
+    if audio_path.endswith(".mp3"):
+        duration = MP3(audio_path).info.length
+        if duration > 60:
+            audio = AudioSegment.from_mp3(audio_path)
+            audio_splits = split_audio(audio, 1, "mp3")
+            answers = []
+            for audio_path in audio_splits:
+                answers.append(multimodal_generate(audio_path, audio_weight, prompt, cache_size, cache_t, cache_weight,
+                                                   max_gen_len, gen_t, top_p, output_type))
+            answers = " ".join(set(answers))
+            return answers
+        else:
+            return multimodal_generate(audio_path, audio_weight, prompt, cache_size, cache_t, cache_weight, max_gen_len,
+                                       gen_t, top_p, output_type)
+    elif audio_path.endswith(".wav"):
+        duration = WAVE(audio_path).info.length
+        if duration > 60:
+            audio = AudioSegment.from_wav(audio_path)
+            audio_splits = split_audio(audio, 1, "wav")
+            answers = []
+            for audio_path in audio_splits:
+                answers.append(multimodal_generate(audio_path, audio_weight, prompt, cache_size, cache_t, cache_weight,
+                                                   max_gen_len, gen_t, top_p, output_type))
+            answers = " ".join(set(answers))
+            return answers
+        else:
+            return multimodal_generate(audio_path, audio_weight, prompt, cache_size, cache_t, cache_weight, max_gen_len,
+                                       gen_t, top_p, output_type)
 
 
 def create_imagebind_llm_demo():
@@ -121,7 +168,7 @@ def create_imagebind_llm_demo():
 
     def bot(history, audio_file_path, cache_size_value, cache_t_value, cache_weight_value, max_gen_len_value, gen_t_value, top_p_value):
         #print(cache_size.value, cache_t.value, cache_weight.value, max_gen_len.value, gen_t.value, top_p.value)
-        bot_message = multimodal_generate(
+        bot_message = generate_answer(
             audio_file_path,
             1,
             history[-1][0],

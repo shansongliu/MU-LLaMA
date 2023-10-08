@@ -7,11 +7,7 @@ from data.utils import load_and_transform_audio_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-<<<<<<< HEAD
     "--model", default="./ckpts/checkpoint.pth", type=str,
-=======
-    "--model", default="7B", type=str,
->>>>>>> acc83901c84beffaead4c32f6bda1db320f5843b
     help="Name of or path to the trained checkpoint",
 )
 parser.add_argument(
