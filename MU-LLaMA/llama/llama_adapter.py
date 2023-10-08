@@ -66,7 +66,7 @@ class LLaMA_adapter(nn.Module):
             params = json.loads(f.read())
         bias_lora = phase == "finetune"
         model_args: ModelArgs = ModelArgs(
-            max_seq_len=8192, max_batch_size=32, w_bias=bias_lora, w_lora=bias_lora,
+            max_seq_len=8192, max_batch_size=1, w_bias=bias_lora, w_lora=bias_lora,
             **params)  # max_batch_size only affects inference
         print(f"model args: {model_args}")
         model_args.vocab_size = self.tokenizer.n_words
