@@ -190,7 +190,7 @@ class LLaMA_adapter(nn.Module):
                 (ix + 60) * self.mert_processor.sampling_rate, len(sub_x))],
                                               sampling_rate=self.mert_processor.sampling_rate,
                                               return_tensors="pt").to(self.device) for ix in
-                          range(0, len(sub_x) // (self.mert_processor.sampling_rate * 60), 60)]
+                          range(0, len(sub_x) // (self.mert_processor.sampling_rate * 60) + 1, 60)]
             aggoutputs = torch.zeros(1, 25, 1024).to(self.device)
             for inputs in all_inputs:
                 with torch.no_grad():
