@@ -43,7 +43,7 @@ Once downloaded the directory structure will be as shown below.
 └── ...
 ```
 
-We use Python 3.9.17 for this project and the library requirements are given in [***requirements.txt***](./requirements.txt). The demo can be run using [***gradio_app.py***](./MU-LLaMA/gradio_app.py).
+We use Python 3.9.17 for this project and the library requirements are given in [***requirements.txt***](./requirements.txt). The demo can be run using [***gradio_app.py***](./MU-LLaMA/gradio_app.py) or [***gradio_app_large.py***](./MU-LLaMA/gradio_app_large.py) for large music files.
 ```
 python gradio_app.py --model ./ckpts/checkpoint.pth --llama_dir ./ckpts/LLaMA
 ```
@@ -127,7 +127,7 @@ This will finetune the MU-LLaMA model for 20 epochs. The hyperparameters can be 
 
 ### MU-LLaMA Inference
 
-To test the model without Gradio, the [***inference.py***](./MU-LLaMA/inference.py) script can be used.
+To test the model without Gradio, the [***inference.py***](./MU-LLaMA/inference.py) script or [***inference_large.py***](./MU-LLaMA/inference_large.py) script for large music files can be used.
 ```
 usage: inference.py [-h] [--model MODEL] [--llama_type LLAMA_TYPE] [--llama_dir LLAMA_DIR] [--mert_path MERT_PATH] --audio_path AUDIO_PATH [--question QUESTION]
 
