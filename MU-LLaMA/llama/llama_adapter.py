@@ -186,13 +186,20 @@ class LLaMA_adapter(nn.Module):
     def encode_audio(self, x):
         xs = []
         for sub_x in x:
-            inputs = self.mert_processor(sub_x, sampling_rate=self.mert_processor.sampling_rate,
-                                         return_tensors="pt").to(self.device)
-            with torch.no_grad():
-                outputs = self.mert_model(**inputs, output_hidden_states=True)
-            all_layer_hidden_states = torch.stack(outputs.hidden_states).squeeze()
-            sub_x = all_layer_hidden_states.mean(-2).unsqueeze(0)
-            sub_x = self.mu_mert_agg(sub_x).squeeze()
+            all_inputs = [self.mert_processor(sub_x[ix * self.mert_processor.sampling_rate:min(
+                (ix + 60) * self.mert_processor.sampling_rate, len(sub_x))],
+                                              sampling_rate=self.mert_processor.sampling_rate,
+                                              return_tensors="pt").to(self.device) for ix in
+                          range(0, len(sub_x) // (self.mert_processor.sampling_rate * 60) + 1, 60)]
+            aggoutputs = torch.zeros(1, 25, 1024).to(self.device)
+            for inputs in all_inputs:
+                with torch.no_grad():
+                    outputs = self.mert_model(**inputs, output_hidden_states=True)
+                all_layer_hidden_states = torch.stack(outputs.hidden_states).squeeze()
+                sub_x = all_layer_hidden_states.mean(-2).unsqueeze(0)
+                aggoutputs += sub_x
+            aggoutputs /= len(all_inputs)
+            sub_x = self.mu_mert_agg(aggoutputs).squeeze()
             xs.append(sub_x)
         x = torch.stack(xs, dim=0)
         return x
