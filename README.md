@@ -208,3 +208,8 @@ If you find this repo useful, please consider citing:
   year={2023}
 }
 ```
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=crypto-code/MU-LLaMA&type=Date)](https://star-history.com/#crypto-code/MU-LLaMA&Date)
+
